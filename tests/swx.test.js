@@ -2,8 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildSwxState, DEFAULT_COORDS } from '../api/_lib/build.js';
 import { checkSwxState } from '../api/_lib/schema.js';
-import handler, { parseCoords } from '../api/swx.js';
-import { mockFetch, hangingFetch, SAMPLE_NOW } from './helpers/mock-fetch.js';
+import handler, { parseCoords, clearStateCache } from '../api/swx.js';
+import { bearerToken, supabaseConfig } from '../api/_lib/auth.js';
+import { mockFetch, hangingFetch, SAMPLE_NOW, TOKENS } from './helpers/mock-fetch.js';
 
 const build = (opts = {}) => buildSwxState({ now: SAMPLE_NOW, fetchImpl: mockFetch(), ...opts });
 const src = (state, id) => state.sources.find((s) => s.id === id);
@@ -85,9 +86,16 @@ test('parseCoords: 한반도 범위만 허용, 아니면 대전', () => {
   assert.deepEqual(parseCoords(), DEFAULT_COORDS);
 });
 
-test('handler: 200, s-maxage=300 캐시 헤더, SwxState 본문', async () => {
+// handler 호출 도우미: 가짜 fetch·Supabase 환경변수를 넣고 응답을 돌려준다.
+async function callHandler({ token, env = { SUPABASE_URL: 'https://test.supabase.co', SUPABASE_ANON_KEY: 'anon' } } = {}) {
   const realFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch();
+  const saved = { ...process.env };
+  let calls = 0;
+  const mock = mockFetch();
+  globalThis.fetch = (url, opts) => { if (!/supabase/.test(url)) calls++; return mock(url, opts); };
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_ANON_KEY;
+  Object.assign(process.env, env);
   try {
     const res = {
       headers: {},
@@ -95,13 +103,51 @@ test('handler: 200, s-maxage=300 캐시 헤더, SwxState 본문', async () => {
       status(code) { this.code = code; return this; },
       json(body) { this.body = body; return this; },
     };
-    await handler({ query: {} }, res);
-    assert.equal(res.code, 200);
-    assert.match(res.headers['Cache-Control'], /s-maxage=300/);
-    assert.deepEqual(checkSwxState(res.body), []);
+    const headers = token ? { authorization: `Bearer ${token}` } : {};
+    await handler({ query: {}, headers }, res);
+    return { res, sourceCalls: calls };
   } finally {
     globalThis.fetch = realFetch;
+    process.env = saved;
   }
+}
+
+test('handler: 승인 사용자는 200, 공용 캐시 금지, SwxState 본문', async () => {
+  clearStateCache();
+  const { res } = await callHandler({ token: TOKENS.active });
+  assert.equal(res.code, 200);
+  assert.equal(res.headers['Cache-Control'], 'private, no-store');
+  assert.deepEqual(checkSwxState(res.body), []);
+});
+
+test('handler: 5분 안의 두 번째 요청은 원천을 다시 부르지 않는다', async () => {
+  clearStateCache();
+  const first = await callHandler({ token: TOKENS.active });
+  const second = await callHandler({ token: TOKENS.active });
+  assert.ok(first.sourceCalls > 0);
+  assert.equal(second.sourceCalls, 0);
+});
+
+test('handler: 토큰 없음 401, 무효 토큰 401, 승인 대기 403', async () => {
+  assert.equal((await callHandler({})).res.code, 401);
+  assert.equal((await callHandler({ token: 'expired' })).res.code, 401);
+  const pending = await callHandler({ token: TOKENS.pending });
+  assert.equal(pending.res.code, 403);
+  assert.equal(pending.res.body.error, '승인되지 않았거나 정지된 계정입니다');
+});
+
+test('handler: Supabase 설정이 없으면 503(열어두지 않는다)', async () => {
+  const { res } = await callHandler({ token: TOKENS.active, env: {} });
+  assert.equal(res.code, 503);
+});
+
+test('bearerToken·supabaseConfig', () => {
+  assert.equal(bearerToken('Bearer abc.def'), 'abc.def');
+  assert.equal(bearerToken('Basic xyz'), null);
+  assert.equal(bearerToken(undefined), null);
+  assert.deepEqual(supabaseConfig({ SUPABASE_URL: 'https://x.supabase.co/', SUPABASE_ANON_KEY: 'k' }), { url: 'https://x.supabase.co', key: 'k' });
+  assert.deepEqual(supabaseConfig({ NEXT_PUBLIC_SUPABASE_URL: 'https://y.supabase.co', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'p' }), { url: 'https://y.supabase.co', key: 'p' });
+  assert.equal(supabaseConfig({}), null);
 });
 
 test('checkSwxState: 형식 오류를 잡아낸다', () => {

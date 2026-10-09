@@ -4,43 +4,44 @@
 
 ## 1. 지금 상태
 
-**현재 페이즈**: P1 데이터 계층 — 코드 완료, **배포 검증만 남음**(사용자 계정 필요)
+**현재 페이즈**: P1.5 로그인·승인 — 코드 완료, **Supabase 프로젝트 연결·배포 검증 남음**(사용자 계정 필요)
+(P1 데이터 계층도 코드 완료, 배포 검증만 남음. 두 페이즈를 한 번의 배포로 함께 검증한다)
 
 **마지막으로 완료한 것**
-- 새 저장소로 이전(GitHub Desktop에서 생성). 이전 로컬 저장소의 커밋 이력 6건은 옮기지 않았고 현재 파일을 첫 커밋으로 넣었다
-- `/api/swx` 데이터 계층: D1~D6, D10·D11, D13 병렬 수집 → SwxState, 5초 타임아웃, `s-maxage=300`, D7 실패 시 내장 일출·일몰
-- 테스트 24건 통과(`node --test`, samples 기반·네트워크 불필요)
-- 실데이터 실행 확인: **원천 10개 모두 OK**(D7 천문연 포함), 스키마 검사 통과
-- D7 천문연 인증키 확인·실응답 샘플 저장, `parseKasi` 실응답 테스트 추가(대전 10-09 일출 06:32·일몰 18:03, 내장 계산과 1분 이내 일치)
-- 키는 `.env.local`(git 제외)에 저장. Node 20.20.2 설치 완료(winget, `C:\Program Files\nodejs`)
-- `samples/` 12개 + `samples/README.md`, `data/fallback-latest.json`(D7 포함으로 재생성)
+- P1.5 로그인·승인(Supabase): 가입 → 승인 대기 → 관리자 승인 → 열람
+  - `supabase/migrations/20261009000000_auth_profiles.sql`: profiles, 가입 트리거, `is_active()`·`is_admin()`·`admin_set_profile()`, RLS
+  - `/api/swx`: Bearer 토큰 확인(없음·무효 401, 미승인 403, 설정 없음 503), 함수 메모리 5분 캐시
+  - 화면: `index.html`(로그인·가입·승인 대기·데이터 확인), `admin.html`(사용자 관리)
+- P1 데이터 계층: 원천 10개 병렬 수집 → SwxState, 실데이터 10개 모두 OK
+- 테스트 28건 통과(`node --test`)
 
 **진행 중이던 것(미완료)**
-- 없음
+- 없음. 화면 JS는 문법 검사만 했고, 실제 Supabase 프로젝트로는 아직 동작 확인 전
 
 ## 2. 다음 할 일(순서대로)
 
-1. **GitHub Desktop으로 비공개 저장소 publish**(사용자) — `.env.local`이 변경 목록에 없는지 확인
-2. **Vercel에서 저장소 Import**, 환경변수 `KASI_API_KEY` 등록 → 배포 URL의 `/api/swx` 응답 확인(P1 완료 기준) → `p1-done` 태그
-3. P0 남은 작업: `data/replay-2024-05.json`, AI 전망 모델 학습(`train_outlook.py`)
-4. 그다음 P2 판단 엔진
+1. **Supabase 프로젝트 생성**(사용자) → SQL Editor에서 마이그레이션 실행 → Auth 설정(README "Supabase 설정")
+2. 프로젝트 URL·anon 키를 알려주면 `js/config.js`에 넣고 커밋(공개 키라 커밋해도 됨)
+3. **GitHub Desktop으로 publish** → **Vercel Import**, 환경변수 3개(`KASI_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`)
+4. 배포 URL에서 관리자 계정 가입 → `bootstrap-admin.sql`로 최초 관리자 지정 → 시험 계정 가입·승인 → 데이터 열람 확인 → `p1-done`, `p1.5-done` 태그
+5. P0 남은 작업: `data/replay-2024-05.json`, AI 전망 모델 학습 → 그다음 P2
 
 ## 3. 알려진 문제·주의사항
 
-- **Node 20은 2026-04 지원 종료**. Vercel이 20.x 런타임을 더 받지 않으면 `package.json`의 `engines.node`를 22.x로 바꾼다(코드 변경 불필요)
+- **Node 20은 2026-04 지원 종료**. Vercel이 20.x 런타임을 거부하면 `package.json`의 `engines.node`를 22.x로 바꾼다
 - 새로 연 터미널부터 `node`가 PATH에 잡힌다. 기존 VS Code 창은 재시작 필요
-- 천문연 인증키가 대화에 노출됐다. 저장소에는 없지만, 외부 공개 전에 공공데이터포털에서 재발급을 검토한다
-- 잘못된 키·한도 초과 시 D7은 `HTTP xxx` 오류로 기록되고 내장 계산으로 대체된다
-- SRB 판정은 경보 제목의 "Radio Emission/Burst"로 한다. 10cm 전파폭발 경보 코드는 샘플에 없어 확인하지 못했다
-- GFZ SN·F10.7은 전날까지만 제공된다. 당일 Kp는 NOAA D2로 보충한다
-- PowerShell 5.1에서 NOAA를 직접 호출할 때는 TLS 1.2를 지정해야 한다(Node는 무관)
+- 천문연 인증키가 대화에 노출됐다. 저장소에는 없지만 외부 공개 전에 재발급을 검토한다
+- Supabase 기본 메일 발송은 시간당 몇 통으로 제한된다. 교육 중에는 Auth의 "Confirm email"을 끄는 것을 권장(README)
+- `data/fallback-latest.json`은 정적 파일이라 로그인 없이도 받을 수 있다(공개 데이터, P9에서 제거)
+- supabase-js는 CDN(jsdelivr, 2.45.4 고정)에서 받는다. 발표장 인터넷이 막히면 로그인도 안 되므로 녹화본으로 대비(P6)
+- SRB 판정은 경보 제목의 "Radio Emission/Burst"로 한다. 10cm 전파폭발 경보 코드는 미확인
 - D9(우주환경센터 경보·국가 위기경보), D12(NOAA 27일 전망 아카이브) 제공 여부 미확인
 
 ## 4. 확인 방법
 
-- `node --test` → 24건 통과
-- `node --env-file=.env.local scripts/dev-swx.mjs > out.json` → stderr에 원천 10개 OK와 "스키마 검사 통과"
-- 배포 후: `https://<배포주소>/api/swx`, 응답 헤더 `Cache-Control: public, s-maxage=300`
+- `node --test` → 28건 통과
+- `node --env-file=.env.local scripts/dev-swx.mjs > out.json` → 원천 10개 OK, "스키마 검사 통과"(인증 없이 데이터 계층만 확인)
+- 배포 후: 비로그인으로 `/api/swx` → 401. 승인 대기 계정으로 로그인 → "승인 대기" 화면. 승인 후 → R/S/G·원천 상태 표시
 
 ## 5. 계정 메모
 
@@ -49,24 +50,31 @@
 ## 6. 페이즈 체크리스트
 
 ### P0 사전 준비(교육 전)
-- [x] PRD를 `docs/PRD.md`로 저장(v2.2)
+- [x] PRD를 `docs/PRD.md`로 저장(v2.3)
 - [ ] GitHub·Vercel 계정, Node 20, Python 3.11 + scikit-learn, Claude Code `/model` Opus 5.5 확인 — Node 20.20.2·Python 3.13·Git 있음, scikit-learn 미확인
 - [x] 천문연 출몰시각 API 활용신청·인증키 확보(실응답 확인 완료)
 - [ ] 우주환경센터 경보·국가 위기경보 제공 여부 확인(없으면 "미연동")
 - [x] SWPC 경보 목록(D13) SRB 항목 확인(Type II/IV Radio Emission) — NOAA 27일 전망 아카이브(D12)는 미확인
-- [ ] 보안 점검: 비공개 저장소, noindex, 부대명·장비명·제원 미포함, 대외 게시 규정 확인
-- [x] 저장소 생성(로컬), 문서 4종·`.claude/commands/` 커밋 — GitHub 원격 연결은 남음
-- [x] `samples/` 수집 + `samples/README.md`(D7 제외)
+- [ ] 보안 점검: 비공개 저장소, noindex(완료), 부대명·장비명·제원 미포함, 대외 게시 규정 확인
+- [x] 저장소 생성(GitHub Desktop), 문서 4종·`.claude/commands/` 커밋 — GitHub publish는 남음
+- [x] `samples/` 수집 + `samples/README.md`
 - [ ] `data/replay-2024-05.json` 생성
 - [ ] AI 전망 모델 학습(`train_outlook.py`), `reports/outlook-eval.md` 검토, `forecast-model.json`·`tests/fixtures/outlook.json` 커밋
 - [ ] 빈 화면 + `/api/swx` Vercel 배포 경로 검증
-- [x] `fallback-latest.json` 생성(P1 완료 후) — 발표 전날·당일 아침에 다시 생성
+- [x] `fallback-latest.json` 생성 — 발표 전날·당일 아침에 다시 생성
 - [ ] 계정 A·B 전환 리허설, Git 자격 증명 설정
 
 ### P1 데이터 계층(교육 전)
-- [x] `api/swx.js`: D1~D7, D10·D11(60일), D13 병렬 호출 → SwxState, 5초 타임아웃, `s-maxage=300`
-- [x] 변환 함수 테스트(samples 입력) — 24건 통과
+- [x] `api/swx.js`: D1~D7, D10·D11(60일), D13 병렬 호출 → SwxState, 5초 타임아웃
+- [x] 변환 함수 테스트(samples 입력)
 - [ ] 로컬·배포 URL에서 스키마에 맞는 JSON 확인 — 로컬 완료, 배포 URL 남음
+
+### P1.5 로그인·승인(교육 전)
+- [x] Supabase 마이그레이션(profiles, 트리거, RLS, 관리자 함수), 최초 관리자 SQL
+- [x] `/api/swx` 토큰·승인 확인 + 테스트(401·403·503·캐시)
+- [x] 로그인·가입·승인 대기 화면, 사용자 관리 화면
+- [ ] Supabase 프로젝트 생성·마이그레이션 실행·`js/config.js` 설정
+- [ ] 배포 URL에서 가입 → 승인 → 열람, 미승인 403, 비로그인 401 확인
 
 ### P2 판단 엔진(3일차 저녁)
 - [ ] `config/rules.json`(부록 A 9개 체계, horizonRules, source 태그)
@@ -92,6 +100,7 @@
 
 ### P6 발표 패키지(4일차 저녁)
 - [ ] 시연 시나리오 4개, 녹화본, fallback 갱신, 리허설 1회
+- [ ] 심사위원용 시연 계정 준비(승인 상태)
 
 ## 7. 결정 로그
 
@@ -114,3 +123,8 @@
 | 2026-10-09 | 로컬 비밀값은 `.env.local` + `node --env-file`로 읽는다 | Node 20 내장 기능, 추가 패키지 불필요 |
 | 2026-10-09 | 교육 트랙 배포에는 Supabase를 연결하지 않는다 | DB는 고도화 P8부터(PRD 2장 "하지 않는 것", 11장) |
 | 2026-10-09 | GitHub Desktop으로 만든 새 저장소로 이전, 이전 로컬 이력은 보존하지 않음 | 사용자 결정. 앞으로 GitHub에 올리며 작업 |
+| 2026-10-09 | (위 "Supabase 연결 안 함"을 대체) 교육 목적으로 Supabase 로그인·승인을 P1.5로 지금 추가(PRD v2.3) | 사용자 결정 |
+| 2026-10-09 | 역할 2단계(user·admin) + 상태(pending·active·suspended), 승인된 사용자만 열람 | 사용자 결정. P9에서 3단계·MFA·감사 로그로 확장 |
+| 2026-10-09 | `/api/swx` 캐시를 CDN 공용(s-maxage)에서 함수 메모리 5분으로 변경, `private, no-store` | 인증 응답이 공용 캐시를 통해 미인증 사용자에게 나갈 위험 차단 |
+| 2026-10-09 | Supabase 설정이 없으면 `/api/swx`는 503(열어두지 않음) | 설정 누락 시 무인증 공개를 막기 위함 |
+| 2026-10-09 | supabase-js 2.45.4를 jsdelivr CDN ESM으로 사용 | 빌드 도구 없는 구조 유지 |

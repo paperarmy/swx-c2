@@ -26,9 +26,20 @@ export const KASI_XML =
   '<response><header><resultCode>00</resultCode></header><body><items><item>' +
   '<sunrise>0629  </sunrise><sunset>1806  </sunset></item></items></body></response>';
 
+// Supabase is_active() 가짜 응답: 토큰별로 승인·대기·무효
+export const TOKENS = { active: 'token-active', pending: 'token-pending' };
+
+function supabaseRpc(opts) {
+  const token = opts?.headers?.Authorization?.replace('Bearer ', '');
+  if (token === TOKENS.active) return response('true');
+  if (token === TOKENS.pending) return response('false');
+  return { ok: false, status: 401, json: async () => ({ message: 'JWT expired' }) };
+}
+
 // fail: 실패시킬 샘플 파일 접두어 목록(예: ['d1-', 'd10-'])
 export function mockFetch({ fail = [] } = {}) {
-  return async (url) => {
+  return async (url, opts) => {
+    if (/\/rest\/v1\/rpc\/is_active$/.test(url)) return supabaseRpc(opts);
     if (/apis\.data\.go\.kr/.test(url)) return response(KASI_XML);
     const hit = ROUTES.find(([re]) => re.test(url));
     if (!hit) return { ok: false, status: 404 };

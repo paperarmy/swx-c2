@@ -32,7 +32,10 @@ NOAA·GFZ·천문연 공개 데이터 → R/S/G 등급 → 한반도 주·야간
 - **AI는 브라우저에서 계산**: 로지스틱 회귀 계수(`config/forecast-model.json`)만 배포하므로 서버나 GPU가 필요 없습니다. 모델이 27일 재귀 기준선을 이기지 못하는 기간은 기준선을 대신 표시하고, 성능을 화면에 공개합니다.
 
 ```
-api/swx.js          수집·변환 서버 함수(유일한 함수)
+index.html          로그인·승인 대기·보드
+admin.html          사용자 관리(관리자)
+supabase/           DB 마이그레이션 SQL(배포 제외)
+api/swx.js          수집·변환 서버 함수(유일한 함수, 로그인 토큰 확인)
 api/_lib/           원천 주소, 변환, 일출·일몰 계산, 스키마 검사
 js/engine.js        판단 엔진(순수 함수)
 js/forecast.js      AI 장차 전망 계산
@@ -72,9 +75,29 @@ node --env-file=.env.local scripts/make-fallback.mjs
 python scripts/train_outlook.py
 ```
 
+## Supabase 설정(로그인·사용자 승인)
+
+승인된 사용자만 보드를 볼 수 있습니다. 가입하면 "승인 대기" 상태가 되고, 관리자가 `admin.html`에서 승인합니다.
+
+1. supabase.com에서 새 프로젝트를 만든다(Region: Northeast Asia (Seoul) 권장).
+2. **SQL Editor**에 `supabase/migrations/20261009000000_auth_profiles.sql` 전체를 붙여넣고 Run.
+3. **Authentication → Sign In / Providers → Email**: 교육 중에는 "Confirm email"을 끄는 것을 권장(기본 메일 발송량 제한).
+4. **Authentication → URL Configuration**: Site URL을 Vercel 배포 주소로.
+5. **Project Settings → API**에서 Project URL과 anon(publishable) 키를 `js/config.js`에 넣고 커밋. service_role 키는 쓰지 않는다.
+6. 배포 후 관리자로 쓸 계정으로 가입 → `supabase/bootstrap-admin.sql`의 이메일을 바꿔 SQL Editor에서 Run(최초 1회).
+7. 이후 가입자는 `admin.html`에서 승인·관리자 지정·정지한다.
+
 ## 배포
 
-GitHub 비공개 저장소를 Vercel 프로젝트에 연결하면 push할 때마다 자동으로 배포됩니다. `KASI_API_KEY`는 Vercel 프로젝트 설정의 환경변수에 등록합니다. 천문연 API가 실패하면 주·야간은 내장 계산으로 대체합니다.
+GitHub 비공개 저장소를 Vercel 프로젝트에 연결하면 push할 때마다 자동으로 배포됩니다(Framework Preset: Other, 빌드 명령 없음). Vercel 환경변수:
+
+| 이름 | 값 |
+| --- | --- |
+| `KASI_API_KEY` | 천문연 출몰시각 인증키(비밀). 실패하면 주·야간은 내장 계산 |
+| `SUPABASE_URL` | Supabase Project URL |
+| `SUPABASE_ANON_KEY` | Supabase anon(publishable) 키 |
+
+`SUPABASE_*`가 없으면 `/api/swx`는 503을 돌려준다(인증 없이 열지 않음).
 
 ## 데이터 출처
 

@@ -15,8 +15,11 @@
 | README.md | 사람용 소개·실행 방법 | 실행·구조가 바뀔 때 갱신 |
 
 ## 기술 규칙
-- 빌드 도구·프레임워크 없이 HTML/CSS/순수 JS(ES 모듈). 외부 라이브러리는 Chart.js(CDN)만.
-- 서버는 api/swx.js(Vercel 서버 함수, Node 20) 하나만. 원천 API는 이 파일에서만 호출한다.
+- 빌드 도구·프레임워크 없이 HTML/CSS/순수 JS(ES 모듈). 외부 라이브러리는 Chart.js와 supabase-js만(CDN, 버전 고정).
+- 서버는 api/swx.js(Vercel 서버 함수, Node 20) 하나만. 원천 API는 이 파일에서만 호출한다. 보조 모듈은 api/_lib/에 둔다.
+- 인증(P1.5): Supabase Auth, 역할 2단계(user·admin), 가입 시 승인 대기. 권한 판단은 화면이 아니라 RLS·DB 함수에서 한다. 화면의 메뉴 숨김은 편의일 뿐이다.
+- /api/swx는 승인 사용자의 토큰을 확인한다. 응답이 사용자별이므로 CDN 공용 캐시(s-maxage)를 쓰지 않는다.
+- DB 스키마·정책 변경은 supabase/migrations/에 새 SQL 파일로만 한다. 대시보드에서 직접 고치지 않는다.
 - 화면·엔진·전망은 SwxState(PRD 3.2)만 입력으로 받는다. 원천 API 형식을 화면 코드에서 다루지 않는다.
 - 판단 엔진은 순수 함수 `evaluate(state, rules, options)`(js/engine.js). 판단 임계값·문구·PACE는 config/rules.json에만 둔다. 코드에 숫자를 직접 쓰지 않는다.
 - AI 장차 전망: 학습은 scripts/train_outlook.py(Python, scikit-learn 로지스틱 회귀)에서 사전에 1회. 브라우저(js/forecast.js)는 config/forecast-model.json의 계수로 계산만 한다. 클래스 가중치는 쓰지 않는다.
@@ -27,7 +30,8 @@
 - 체계별 판단 규칙의 기준은 PRD 부록 A다. 모든 규칙에 출처 태그(source)를 둔다.
 - 색·글꼴·간격은 css/style.css의 토큰만 사용한다. 색은 단계 4개에만 의미를 주고, 단계 글자를 함께 표시한다.
 - 테스트는 Node 내장 `node --test`. 추가 설치 없이 돈다.
-- 비밀값(KASI_API_KEY)은 환경변수로만 다루고 커밋하지 않는다.
+- 비밀값(KASI_API_KEY)은 환경변수로만 다루고 커밋하지 않는다. 로컬은 .env.local + `node --env-file=.env.local`.
+- Supabase anon(publishable) 키는 공개 키라 js/config.js에 둔다. service_role 키는 어디에도 쓰지 않는다(교육 트랙은 필요 없음).
 
 ## 작업 방식
 - 코드를 쓰기 전에 계획을 먼저 보여주고 승인을 받는다.
@@ -44,5 +48,7 @@
 
 ## 보안
 - 공개 데이터만 사용한다. 실제 장비명·제원·부대명·군 내부 정보를 코드·문구·테스트에 넣지 않는다.
+- 가입 정보는 이메일·표시 이름만 받는다. 부대명은 받지 않는다.
+- 화면에 사용자 입력을 넣을 때는 textContent만 쓴다(innerHTML 금지).
 - GitHub 저장소는 비공개, index.html은 noindex.
 - 화면 하단에 출처(NOAA SWPC, GFZ CC BY 4.0, 한국천문연구원)와 "공개 데이터 기반 시제품, 공식 예·경보가 있으면 공식 예·경보를 우선" 문구를 유지한다.

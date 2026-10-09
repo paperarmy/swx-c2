@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>SWx-C2 우주기상 지휘통신 영향판단 보드</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>SWx-C2</h1>
+    <div class="who" id="who" hidden>
+      <span id="who-name"></span>
+      <a id="admin-link" href="admin.html" hidden>사용자 관리</a>
+      <button id="logout">로그아웃</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Supabase 설정 전 -->
+    <section id="view-config" class="panel narrow" hidden>
+      <p>Supabase 설정이 없습니다. <code>js/config.js</code>에 프로젝트 URL과 anon 키를 넣어 주세요.</p>
+    </section>
+
+    <!-- 로그인·가입 -->
+    <section id="view-login" class="panel narrow" hidden>
+      <div class="tabs" role="tablist">
+        <button id="tab-login" role="tab" aria-selected="true">로그인</button>
+        <button id="tab-signup" role="tab" aria-selected="false">가입 신청</button>
+      </div>
+      <form id="auth-form">
+        <div id="name-field" hidden>
+          <label for="display-name">표시 이름</label>
+          <input id="display-name" autocomplete="nickname" maxlength="40">
+        </div>
+        <label for="email">이메일</label>
+        <input id="email" type="email" autocomplete="email" required>
+        <label for="password">비밀번호(6자 이상)</label>
+        <input id="password" type="password" autocomplete="current-password" minlength="6" required>
+        <div class="row"><button class="primary" id="auth-submit" type="submit">로그인</button></div>
+        <p class="msg" id="auth-msg" role="status"></p>
+      </form>
+      <p class="msg">부대명·장비명 등 군 내부 정보는 입력하지 마십시오.</p>
+    </section>
+
+    <!-- 승인 대기·정지 -->
+    <section id="view-pending" class="panel narrow" hidden>
+      <p id="pending-text"></p>
+    </section>
+
+    <!-- 승인 사용자: 데이터 확인(P3에서 탭 6개로 교체) -->
+    <section id="view-app" hidden>
+      <div class="panel">
+        <div>기준 시각 <strong id="as-of">-</strong> · 모드 <span class="badge" id="mode">-</span></div>
+        <p class="msg" id="data-msg" role="status"></p>
+      </div>
+      <div class="panel scales">
+        <div><div>R 전파두절</div><div class="value" id="scale-R">-</div></div>
+        <div><div>S 태양복사</div><div class="value" id="scale-S">-</div></div>
+        <div><div>G 지자기</div><div class="value" id="scale-G">-</div></div>
+      </div>
+      <div class="panel">
+        <div>한반도(대전) <span id="daynight">-</span></div>
+        <div class="row" id="sources"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    공개 데이터 기반 시제품 · 공식 예·경보가 있으면 공식 예·경보를 우선합니다.<br>
+    출처: NOAA SWPC, GFZ Potsdam(CC BY 4.0), 한국천문연구원
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

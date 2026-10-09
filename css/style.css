@@ -1,0 +1,62 @@
+/* 디자인 토큰. P3에서 디자인 시스템으로 교체한다(PRD 6.2). 색은 단계 4개에만 의미를 준다. */
+:root {
+  --bg: #0f1419;
+  --panel: #1a2129;
+  --border: #2c3640;
+  --text: #e6edf3;
+  --muted: #8b98a5;
+  --accent: #4c9aff;
+  --lv0: #2ea043; /* 정상 */
+  --lv1: #d4a72c; /* I 관찰 */
+  --lv2: #e8772e; /* II 대비 */
+  --lv3: #da3633; /* III 조치 */
+  --font: system-ui, -apple-system, 'Malgun Gothic', sans-serif;
+  --fs-body: 1rem;
+  --fs-title: 1.5rem;
+  --gap: 1rem;
+  --radius: 8px;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: var(--fs-body)/1.5 var(--font); }
+main { max-width: 960px; margin: 0 auto; padding: var(--gap); }
+h1 { font-size: var(--fs-title); margin: 0; }
+a { color: var(--accent); }
+
+.topbar { display: flex; flex-wrap: wrap; gap: var(--gap); align-items: center; justify-content: space-between;
+  padding: var(--gap); border-bottom: 1px solid var(--border); }
+.topbar .who { color: var(--muted); display: flex; gap: var(--gap); align-items: center; flex-wrap: wrap; }
+
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: var(--gap); margin-block: var(--gap); }
+.narrow { max-width: 420px; margin-inline: auto; }
+
+label { display: block; margin-block: 0.5rem 0.25rem; color: var(--muted); }
+input { width: 100%; padding: 0.6rem; border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font: inherit; }
+button { padding: 0.5rem 0.9rem; border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--panel); color: var(--text); font: inherit; cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button:disabled { opacity: 0.5; cursor: default; }
+.row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: var(--gap); }
+.tabs { display: flex; gap: 0.5rem; margin-bottom: var(--gap); }
+.tabs button[aria-selected="true"] { border-color: var(--accent); }
+
+.msg { min-height: 1.5em; margin-top: 0.5rem; color: var(--muted); }
+.msg.error { color: var(--lv3); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th { color: var(--muted); font-weight: normal; }
+
+.badge { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid var(--border); }
+.dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; margin-right: 0.3rem; }
+.dot.ok { background: var(--lv0); }
+.dot.fail { background: var(--lv3); }
+
+.scales { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); text-align: center; }
+.scales .value { font-size: 2.5rem; font-weight: bold; }
+
+footer { color: var(--muted); font-size: 0.85rem; padding: var(--gap); text-align: center; }
+[hidden] { display: none !important; }
