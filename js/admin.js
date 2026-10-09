@@ -4,6 +4,12 @@ import { supabase, isConfigured, currentProfile } from './auth.js';
 import { fmtKst, el, ROLE_LABEL, STATUS_LABEL } from './format.js';
 
 const $ = (id) => document.getElementById(id);
+
+try {
+  if (localStorage.getItem('swx-theme') === 'light') document.documentElement.dataset.theme = 'light';
+} catch {
+  /* 기본 테마 */
+}
 let filter = 'pending';
 let me = null;
 

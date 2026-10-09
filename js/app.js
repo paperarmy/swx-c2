@@ -1,8 +1,13 @@
 // 접속 흐름(P1.5): 설정 확인 → 로그인 → 승인 확인 → 데이터 표시.
-// 데이터 화면은 /api/swx 연결 확인용 최소 형태이며 P3에서 탭 6개로 교체한다.
+// 화면(P3): 상단 표시줄 + 탭1 브리핑·탭2 매트릭스·탭3 PACE·탭6 장차 전망. 판단은 engine.evaluate()가 한다.
 import { supabase, isConfigured, currentProfile, signIn, signUp, signOut, authFetch } from './auth.js';
-import { fmtKst, el } from './format.js';
+import { evaluate } from './engine.js';
 import { withOutlook } from './forecast.js';
+import { installTooltips } from './tooltip.js';
+import { renderStatus } from './render/status.js';
+import { renderBrief } from './render/brief.js';
+import { renderMatrix } from './render/matrix.js';
+import { renderPace } from './render/pace.js';
 import { renderOutlook } from './render/outlook.js';
 
 const API_TIMEOUT_MS = 10000; // PRD 3.5
@@ -12,12 +17,17 @@ const $ = (id) => document.getElementById(id);
 
 let refreshTimer = null;
 let signupMode = false;
-let modelPromise = null; // config/forecast-model.json(한 번만 읽음)
+let current = null; // { state, note } 마지막으로 받은 데이터
+const options = { lowAltitudeOps: false }; // 화면 토글(PRD 12.3)
 
-function loadModel() {
-  modelPromise ??= fetch('config/forecast-model.json').then((r) => (r.ok ? r.json() : null)).catch(() => null);
-  return modelPromise;
-}
+// 설정 파일은 한 번만 읽는다.
+const once = (url) => {
+  let p = null;
+  return () => (p ??= fetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null));
+};
+const loadRules = once('config/rules.json');
+const loadGlossary = once('config/glossary.json');
+const loadModel = once('config/forecast-model.json');
 
 function show(viewId) {
   for (const id of VIEWS) $(id).hidden = id !== viewId;
@@ -34,7 +44,7 @@ async function route() {
     $('auth-msg').textContent = `프로필을 불러오지 못했습니다: ${e.message}`;
   }
 
-  $('who').hidden = !profile;
+  $('who-box').hidden = !profile;
   if (!profile) return show('view-login');
 
   $('who-name').textContent = profile.display_name || profile.email;
@@ -73,27 +83,34 @@ async function loadState() {
       return;
     }
   }
-  render(withOutlook(state, await loadModel()), note);
+  current = { state: withOutlook(state, await loadModel()), note };
+  await render();
 }
 
-function render(state, note) {
-  $('as-of').textContent = fmtKst(state.asOfUtc);
-  $('mode').textContent = { live: '실시간', fallback: '저장 데이터', replay: '재현' }[state.mode] ?? state.mode;
-  for (const k of ['R', 'S', 'G']) $(`scale-${k}`).textContent = state.scales[k] ?? '-';
-
-  const k = state.korea;
-  $('daynight').textContent = `${k.isDaytime ? '주간' : '야간'} (일출 ${k.sunriseKst} · 일몰 ${k.sunsetKst} KST)`;
-
-  const failed = state.sources.filter((s) => !s.ok);
+async function render() {
+  if (!current) return;
+  const [rules, glossary] = await Promise.all([loadRules(), loadGlossary()]);
+  if (!rules) {
+    $('data-msg').textContent = '판단 규칙(config/rules.json)을 불러오지 못했습니다.';
+    $('data-msg').className = 'msg error';
+    return;
+  }
+  const ctx = { state: current.state, result: evaluate(current.state, rules, options), rules, glossary: glossary ?? { terms: {} }, options };
   $('data-msg').className = 'msg';
-  $('data-msg').textContent = [note, failed.length ? '일부 데이터 지연' : ''].filter(Boolean).join(' · ');
-  $('sources').replaceChildren(
-    ...state.sources.map((s) => el('span', { title: s.error ?? s.note ?? '' }, el('span', { class: `dot ${s.ok ? 'ok' : 'fail'}` }), s.id)),
-  );
-  renderOutlook($('tab-outlook'), state);
+  $('data-msg').textContent = current.note;
+  renderStatus($('status'), ctx);
+  renderBrief($('tab-brief'), ctx);
+  renderMatrix($('tab-matrix'), ctx, {
+    onToggleLowAlt: (on) => {
+      options.lowAltitudeOps = on;
+      render();
+    },
+  });
+  renderPace($('tab-pace'), ctx);
+  renderOutlook($('tab-outlook'), ctx.state, ctx.glossary);
 }
 
-// 탭 전환
+// 탭 전환. 숨겨진 상태로 그린 그래프는 크기가 0이므로 보일 때 다시 그린다.
 for (const tab of document.querySelectorAll('[data-tab]')) {
   tab.addEventListener('click', () => {
     for (const t of document.querySelectorAll('[data-tab]')) {
@@ -101,8 +118,32 @@ for (const tab of document.querySelectorAll('[data-tab]')) {
       t.setAttribute('aria-selected', String(on));
       $(t.dataset.tab).hidden = !on;
     }
+    if (tab.dataset.tab === 'tab-brief') render();
   });
 }
+
+// 테마: 어두운 상황실 테마 기본, 발표용 밝은 테마(PRD 6.2). 선택은 이 브라우저에만 기억한다.
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  $('theme-toggle').textContent = theme === 'light' ? '어두운 테마' : '밝은 테마';
+}
+try {
+  applyTheme(localStorage.getItem('swx-theme') === 'light' ? 'light' : 'dark');
+} catch {
+  applyTheme('dark');
+}
+$('theme-toggle').addEventListener('click', () => {
+  const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+  applyTheme(next);
+  try {
+    localStorage.setItem('swx-theme', next);
+  } catch {
+    /* 저장소를 못 쓰면 이번 화면에만 적용 */
+  }
+  render();
+});
+
+installTooltips();
 
 // 로그인·가입 폼
 function setMode(signup) {

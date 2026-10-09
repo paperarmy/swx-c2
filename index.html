@@ -6,14 +6,18 @@
   <meta name="robots" content="noindex, nofollow">
   <title>SWx-C2 우주기상 지휘통신 영향판단 보드</title>
   <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <header class="topbar">
-    <h1>SWx-C2</h1>
-    <div class="who" id="who" hidden>
-      <span id="who-name"></span>
-      <a id="admin-link" href="admin.html" hidden>사용자 관리</a>
-      <button id="logout">로그아웃</button>
+    <h1>SWx-C2 <span class="subtitle">우주기상 지휘통신 영향판단</span></h1>
+    <div class="who">
+      <button id="theme-toggle" type="button" data-tip="어두운 상황실 테마와 발표용 밝은 테마를 바꿉니다." tabindex="0">밝은 테마</button>
+      <span id="who-box" hidden>
+        <span id="who-name"></span>
+        <a id="admin-link" href="admin.html" hidden>사용자 관리</a>
+        <button id="logout" type="button">로그아웃</button>
+      </span>
     </div>
   </header>
 
@@ -49,34 +53,26 @@
       <p id="pending-text"></p>
     </section>
 
-    <!-- 승인 사용자: 탭(P3에서 탭1~5를 채운다) -->
+    <!-- 승인 사용자 -->
     <section id="view-app" hidden>
-      <nav class="tabs" role="tablist">
-        <button role="tab" data-tab="tab-status" aria-selected="true">현황</button>
+      <div id="status" class="panel status"><div class="skeleton">데이터를 불러오는 중…</div></div>
+      <p class="msg" id="data-msg" role="status"></p>
+      <nav class="tabs main-tabs" role="tablist">
+        <button role="tab" data-tab="tab-brief" aria-selected="true">1 지휘관 브리핑</button>
+        <button role="tab" data-tab="tab-matrix" aria-selected="false">2 영향 매트릭스</button>
+        <button role="tab" data-tab="tab-pace" aria-selected="false">3 PACE 권고</button>
         <button role="tab" data-tab="tab-outlook" aria-selected="false">6 장차 전망</button>
       </nav>
-      <div id="tab-status" role="tabpanel">
-      <div class="panel">
-        <div>기준 시각 <strong id="as-of">-</strong> · 모드 <span class="badge" id="mode">-</span></div>
-        <p class="msg" id="data-msg" role="status"></p>
-      </div>
-      <div class="panel scales">
-        <div><div>R 전파두절</div><div class="value" id="scale-R">-</div></div>
-        <div><div>S 태양복사</div><div class="value" id="scale-S">-</div></div>
-        <div><div>G 지자기</div><div class="value" id="scale-G">-</div></div>
-      </div>
-      <div class="panel">
-        <div>한반도(대전) <span id="daynight">-</span></div>
-        <div class="row" id="sources"></div>
-      </div>
-      </div>
+      <div id="tab-brief" role="tabpanel"><div class="panel skeleton">데이터를 불러오는 중…</div></div>
+      <div id="tab-matrix" role="tabpanel" hidden></div>
+      <div id="tab-pace" role="tabpanel" hidden></div>
       <div id="tab-outlook" role="tabpanel" hidden></div>
     </section>
   </main>
 
   <footer>
     공개 데이터 기반 시제품 · 공식 예·경보가 있으면 공식 예·경보를 우선합니다.<br>
-    출처: NOAA SWPC, GFZ Potsdam(CC BY 4.0), 한국천문연구원
+    출처: NOAA SWPC, GFZ Potsdam(CC BY 4.0), 한국천문연구원 · 용어 위에 마우스를 올리면 설명이 나옵니다.
   </footer>
 
   <script type="module" src="js/app.js"></script>

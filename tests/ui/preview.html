@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>SWx-C2 화면 미리보기(개발용)</title>
+  <link rel="stylesheet" href="../../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- 개발용: 로그인 없이 모든 탭을 한 화면에 그려 확인한다. 배포 제외(tests/). -->
+  <!-- ?data=fallback(기본)|replay  &frame=2024-05-11T03:00:00Z  &theme=light  &lowalt=1  &select=gnss:h24 -->
+  <main>
+    <div id="status" class="panel status"></div>
+    <h2>1 지휘관 브리핑</h2><div id="tab-brief"></div>
+    <h2>2 영향 매트릭스</h2><div id="tab-matrix"></div>
+    <h2>3 PACE 권고</h2><div id="tab-pace"></div>
+    <h2>6 장차 전망</h2><div id="tab-outlook"></div>
+  </main>
+  <script type="module">
+    import { evaluate } from '../../js/engine.js';
+    import { withOutlook } from '../../js/forecast.js';
+    import { installTooltips } from '../../js/tooltip.js';
+    import { renderStatus } from '../../js/render/status.js';
+    import { renderBrief } from '../../js/render/brief.js';
+    import { renderMatrix } from '../../js/render/matrix.js';
+    import { renderPace } from '../../js/render/pace.js';
+    import { renderOutlook } from '../../js/render/outlook.js';
+
+    const q = new URLSearchParams(location.search);
+    if (q.get('theme') === 'light') document.documentElement.dataset.theme = 'light';
+    const get = (u) => fetch(u).then((r) => r.json());
+    const [rules, glossary, model] = await Promise.all([get('../../config/rules.json'), get('../../config/glossary.json'), get('../../config/forecast-model.json')]);
+    let state;
+    if (q.get('data') === 'replay') {
+      const frames = await get('../../data/replay-2024-05.json');
+      state = frames.find((f) => f.asOfUtc === q.get('frame')) ?? frames[16];
+    } else {
+      state = await get('../../data/fallback-latest.json');
+    }
+    state = withOutlook(state, model);
+    const options = { lowAltitudeOps: q.get('lowalt') === '1' };
+    const $ = (id) => document.getElementById(id);
+    const draw = () => {
+      const ctx = { state, result: evaluate(state, rules, options), rules, glossary, options };
+      renderStatus($('status'), ctx);
+      renderBrief($('tab-brief'), ctx);
+      renderMatrix($('tab-matrix'), ctx, { onToggleLowAlt: (on) => { options.lowAltitudeOps = on; draw(); } });
+      renderPace($('tab-pace'), ctx);
+      renderOutlook($('tab-outlook'), ctx.state, glossary);
+    };
+    draw();
+    const sel = q.get('select');
+    if (sel) {
+      const [sys, col] = sel.split(':');
+      const cols = ['now', 'h6', 'h24', 'd3', 'd4_27'];
+      const row = [...document.querySelectorAll('.matrix tbody tr')].find((tr) => tr.querySelector('th').textContent.startsWith(rules.systems.find((s) => s.id === sys).name));
+      row?.querySelectorAll('.cell')[cols.indexOf(col)]?.click();
+    }
+    document.body.dataset.ready = '1';
+    // 가로 넘침 점검: 화면보다 넓은 요소를 기록한다(--dump-dom으로 확인)
+    const vw = document.documentElement.clientWidth;
+    const wide = [...document.querySelectorAll('main *')].filter((n) => n.getBoundingClientRect().right > vw + 1 && !n.closest('.table-wrap'));
+    document.body.dataset.viewport = String(vw);
+    document.body.dataset.scrollWidth = String(document.documentElement.scrollWidth);
+    document.body.dataset.overflow = wide.slice(0, 5).map((n) => `${n.tagName}.${n.className}`).join(' | ');
+  </script>
+</body>
+</html>

@@ -23,6 +23,8 @@ NOAA·GFZ·천문연 공개 데이터 → R/S/G 등급 → 한반도 주·야간
 | 5 과거 사례 재현 | 2024년 5월 G5 폭풍 타임라인 재생 |
 | 6 AI 장차 전망 | 27일 위험 달력, 작전 기간 위험 확률, 모델 성능 배지 |
 
+화면의 용어·지표 위에 마우스를 올리면 설명이 나옵니다(문구는 `config/glossary.json`). 어두운 상황실 테마가 기본이고 발표용 밝은 테마로 바꿀 수 있습니다.
+
 ## 구조
 
 빌드 도구 없는 정적 화면, Vercel 서버 함수 1개, 규칙 설정 파일로 구성됩니다.
@@ -64,6 +66,9 @@ node --env-file=.env.local scripts/dev-swx.mjs > out.json
 
 # 테스트(네트워크 없이 samples/로 실행)
 node --test
+
+# 화면 미리보기(로그인 없이 전 탭, 개발용): http://localhost:8080/tests/ui/preview.html
+node scripts/serve.mjs
 
 # 원천 API 샘플 수집
 node scripts/fetch-samples.mjs

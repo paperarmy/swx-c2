@@ -2,6 +2,7 @@
 // 27일 달력(G1+ 확률 = 농도, G3+ 확률 = 숫자), 작전 기간 위험 확률, 근거·성능 배지, 고지 문구.
 import { el } from '../format.js';
 import { periodRisk } from '../forecast.js';
+import { tipAttrs } from '../tooltip.js';
 
 const BASIS_LABEL = { ml: 'ML', recurrence: '27일 재귀', climatology: '기후학', mixed: '혼합' };
 const pct = (p, digits = 0) => (p === null || p === undefined ? '-' : `${(p * 100).toFixed(digits)}%`);
@@ -11,13 +12,13 @@ const NOTICE =
   '확률 전망이며 확정 예보가 아닙니다. 코로나 구멍에서 오는 반복형 폭풍에만 예측력이 있고, ' +
   '코로나물질방출(CME)로 생기는 폭풍은 사실상 예측할 수 없습니다. 플레어(R)는 장기 예측이 불가능해 기저확률만 제공합니다.';
 
-function skillBadges(skill) {
+function skillBadges(skill, g) {
   return ['G1', 'G3'].map((name) => {
     const s = skill[name];
     const parts = Object.entries(skill.basis[name]).map(
       ([bucket, basis]) => `${bucket}일 ${BASIS_LABEL[basis]}(재귀 대비 ${signed(s.byHorizon[bucket].vsRecurrence)})`,
     );
-    return el('div', { class: 'badge-line' },
+    return el('div', { ...tipAttrs(g, 'BSS', g?.terms?.recurrence), class: 'badge-line' },
       el('span', { class: 'badge' }, `${name}+`),
       ` 기후학 대비 BSS ${signed(s.bssVsClimatology)} · `,
       parts.join(' · '),
@@ -65,7 +66,7 @@ function periodPicker(outlook) {
   );
 }
 
-export function renderOutlook(container, state) {
+export function renderOutlook(container, state, g) {
   if (!state.outlook?.length) {
     container.replaceChildren(el('p', { class: 'msg' }, '장차 전망을 계산할 이력 자료가 없습니다.'));
     return;
@@ -75,11 +76,11 @@ export function renderOutlook(container, state) {
   container.replaceChildren(
     el('div', { class: 'panel' },
       el('div', {}, `AI 장차 전망 D+1~27 (기준일 ${state.history.dailyMaxKp.at(-1).dateUtc} UTC) · 학습 ${s.trainPeriod} · 검증 ${s.validPeriod}`),
-      ...skillBadges(s),
+      ...skillBadges(s, g),
     ),
     periodPicker(state.outlook),
     el('div', { class: 'panel' },
-      el('div', { class: 'msg' }, '칸의 숫자는 G3 이상 확률, 배경 농도는 G1 이상 확률입니다. 아래 표시는 G3 근거입니다.'),
+      el('div', { ...tipAttrs(g, 'probCell'), class: 'msg' }, '칸의 숫자는 G3 이상 확률, 배경 농도는 G1 이상 확률입니다. 아래 표시는 G3 근거입니다.'),
       calendar(state.outlook),
     ),
     el('div', { class: 'panel' },
