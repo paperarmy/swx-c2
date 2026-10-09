@@ -5,6 +5,6 @@
 
 update public.profiles
    set role = 'admin', status = 'active', approved_at = now(), updated_at = now()
- where email = 'admin@example.com';
+ where email = 'data@mnd.go.kr';
 
 select email, role, status from public.profiles where role = 'admin';
