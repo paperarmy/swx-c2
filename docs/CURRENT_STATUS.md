@@ -1,87 +1,94 @@
-# CURRENT STATUS (마지막 갱신: 2026-10-09 KST, 계정 A)
+# CURRENT STATUS (마지막 갱신: 2026-10-09 16:00 KST, 계정 A · 다음 작업 예정: 약 1주 뒤)
 
-> 인계·진행·결정 기록을 이 파일 하나로 관리한다. 1~5절은 매번 덮어쓰고, 6절은 체크만, 7절은 끝에 추가만 한다(PRD 9.2).
+> 인계·진행·결정 기록을 이 파일 하나로 관리한다. 0~5절은 매번 덮어쓰고, 6절은 체크만, 7절은 끝에 추가만 한다(PRD 9.2).
+
+## 0. 재개 체크리스트(1주 쉬었다가 다시 시작할 때)
+
+1. **Supabase 일시정지 확인**: 무료 프로젝트는 약 1주 사용이 없으면 자동 일시정지된다. supabase.com → 프로젝트 `wgsrarrnzxbzemmprcek`가 "Paused"면 **Restore**(몇 분 걸림). 정지 상태면 배포 화면 로그인이 실패한다.
+2. **VS Code에서 `Desktop\claude\swx-c2\swx-c2` 폴더를 연다**(바깥 `swx-c2`가 아니라 안쪽 폴더가 저장소). 그 폴더에서 Claude Code를 열고 `/pickup` 실행.
+3. GitHub Desktop에서 **Fetch origin**(다른 곳에서 바뀐 것이 없는지 확인).
+4. 터미널에서 `node --test` → 61건 통과 확인. `node`가 없다고 나오면 VS Code를 재시작(설치 위치 `C:\Program Files\nodejs`).
+5. 저장 데이터 갱신: `node --env-file=.env.local scripts/make-fallback.mjs` → `data/fallback-latest.json` 커밋(1주 지난 값이라 갱신 필요).
+6. 배포 주소에 로그인해 **탭4·5 동작 확인**(아래 2절 1번) — P4는 배포 화면에서 아직 확인하지 않았다.
 
 ## 1. 지금 상태
 
-**현재 페이즈**: P4 재현·판별 — **완료**(브라우저 미리보기로 확인). 다음은 P5 배포·검증
-(P1 데이터 계층도 코드 완료, 배포 검증만 남음. 두 페이즈를 한 번의 배포로 함께 검증한다)
+**현재 페이즈**: P4 재현·판별 **완료** → 다음은 **P5 배포·검증**
 
-**마지막으로 완료한 것**
-- **P4 재현·판별 + 전문 영역 보강(참고: compass 근거자료)**
-  - 탭5: 2024년 5월 재생(재생·일시정지·1x/10x·시점 선택·가상 작전 D+n일·종합 등급 타임라인), 재생 시 탭1~3 동기 변화, '실시간으로 돌아가기'
-  - 국가 위기경보 시각(관심 03:50·주의 09:30 KST)과 SWx-C2 첫 II·III 판정 시각 비교표(기준 차이·확정 Kp 한계 고지)
-  - 사례로 배우기: 1967 BMEWS, 2003 할로윈, 2006-12-05(X선만), 2006-12-06(전파폭발), 2022 Starlink를 '가상 재구성'으로 지금 규칙에 넣어 판정(관측자료 아님 표시)
-  - 탭4 장애 원인 판별: 5개 질문(주간·광역 동시·사건 시각 일치·특정 방향/주파수·태양 방향), 현재 데이터 제안 채우기, 판정·근거·전자전 부서 고지. 질문·점수는 rules.json
-  - 근거 출처 태그에 문헌 서지 연결(rules.citations, 마우스 오버)
-  - 용어 설명 전면 개정: 우주기상을 모르는 사람도 이해할 수 있는 일상 말로(glossary.json)
-  - 테스트 61건 통과(재현·판별 7건 추가)
-- **P3 핵심 화면**: 상단 표시줄(모드·기준 시각·원천 상태 + NOAA·우주환경센터·국가 위기경보·SWx-C2 4중 표시), 탭1 지휘관 브리핑(신호등·한 줄 판단·R/S/G·3일 예보·X선·Kp 그래프), 탭2 영향 매트릭스(칸 클릭 근거·출처, 점선 확률 칸, 저고도 토글, 지역 미보정 배지), 탭3 PACE(체계별 전환 순서, 단계별 체크리스트), 밝은 테마 전환
-- **용어 도움말(사용자 요청)**: 화면 항목에 마우스를 올리거나 키보드 초점을 주면 설명 표시. 문구는 `config/glossary.json`(코드 수정 없이 변경)
-- 화면 확인: `tests/ui/preview.html`(로그인 없이 전 탭) + `scripts/serve.mjs` + 헤드리스 Chrome 캡처로 실시간·재현·밝은 테마·좁은 화면 확인, 가로 넘침 없음
-- **P1·P1.5 배포 검증 완료**(사용자): 배포 URL 로그인·관리자 승인·원천 10개 정상
-- **P2.5 AI 장차 전망**: `js/forecast.js`(outlookFromHistory·withOutlook·periodRisk·rBaseline), 탭6 `js/render/outlook.js`
-  - T8·T9 통과: JS 계산이 Python 학습 결과와 5쌍 모두 소수 셋째 자리까지 일치. 전체 테스트 51건 통과
-  - 화면은 문법 검사만 함. 배포 후 브라우저에서 탭6 확인 필요
-- **P2 판단 엔진**: `config/rules.json`(부록 A 9개 체계, horizonRules, SRB·저고도 규칙, 출처 태그), `js/engine.js` evaluate(state, rules, options)
-  - T1~T7, T10~T14 + 미래 칸·Kp→G·주야 구간 테스트 15건 통과(전체 44건)
-  - 실데이터·재현 40프레임 모두 예외 없이 판정, 재현 최대치(2024-05-11 03 UTC) 종합 III
-- Vercel 첫 빌드 실패(Node 20.x 지원 종료) → `engines.node` 24.x로 변경(커밋 741816c), Supabase 공개 설정 반영(0b270d5). **사용자 push 필요**
-- **P0 AI 전망 모델 학습**: `config/forecast-model.json`, `reports/outlook-eval.md`, `tests/fixtures/outlook.json`
-  - G1+: 모든 구간 ML 채택(BSS 기후학 대비 +0.035, 27일 재귀 대비 +0.015)
-  - G3+: h=1~3일만 ML, 4~27일은 27일 재귀 표시(재귀를 못 이김)
-  - 2024-05-08 기준 D+3(실제 G5) G3+ 확률 2.7% → CME 폭풍은 예측 불가함을 보여주는 사례
-- **P0 재현 데이터**: `data/replay-2024-05.json` 40프레임(GOES·GFZ·당시 SWPC 3일 예보), R·G·S 등급을 공식 기록과 대조 확인
-- P1.5 로그인·승인(Supabase): 가입 → 승인 대기 → 관리자 승인 → 열람
-  - `supabase/migrations/20261009000000_auth_profiles.sql`: profiles, 가입 트리거, `is_active()`·`is_admin()`·`admin_set_profile()`, RLS
-  - `/api/swx`: Bearer 토큰 확인(없음·무효 401, 미승인 403, 설정 없음 503), 함수 메모리 5분 캐시
-  - 화면: `index.html`(로그인·가입·승인 대기·데이터 확인), `admin.html`(사용자 관리)
-- P1 데이터 계층: 원천 10개 병렬 수집 → SwxState, 실데이터 10개 모두 OK
-- 테스트 28건 통과(`node --test`)
+**배포 상태**
+- GitHub `paperarmy/swx-c2`(비공개) main = 커밋 `515586b`(P4)까지 push 완료
+- Vercel 프로젝트 `swx-c2-b2s8`(Hobby), main push 시 자동 배포. 환경변수 3개(`KASI_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`) 등록됨
+- Supabase 프로젝트 `wgsrarrnzxbzemmprcek`: 마이그레이션 적용, 이메일 확인 끔, 최초 관리자 지정 완료(사용자)
+
+**완료된 페이즈 요약**
+| 페이즈 | 내용 | 확인 |
+| --- | --- | --- |
+| P0 | 문서 4종, samples 12종, 재현 데이터 40프레임(2024-05), AI 전망 모델 학습(G1+ 전 구간 ML, G3+ 1~3일만 ML) | 공식 기록 대조, 보고서 `reports/outlook-eval.md` |
+| P1 | `/api/swx`: 원천 10개 병렬 수집 → SwxState, 천문연 일출·일몰(실패 시 내장 계산) | 배포 화면 원천 10개 정상(사용자) |
+| P1.5 | Supabase 로그인·가입 승인·사용자 관리(user·admin), `/api/swx` 토큰 확인 | 배포 화면 로그인·승인(사용자) |
+| P2 | 판단 엔진 `js/engine.js` + `config/rules.json`(9개 체계, 미래 칸, SRB·저고도 규칙) | T1~T7·T10~T14 |
+| P2.5 | AI 장차 전망 `js/forecast.js` + 탭6 | T8·T9(Python과 소수 셋째 자리 일치) |
+| P3 | 상단 4중 표시, 탭1 브리핑·탭2 매트릭스·탭3 PACE, 마우스 오버 용어 설명, 밝은 테마 | 배포 화면 확인(사용자: "잘 작동") |
+| P4 | 탭5 재현(2024-05 재생·국가 경보 비교·사례 가상 재구성 5건), 탭4 장애 원인 판별, 문헌 출처 연결, 용어 설명 일상 말로 개정 | 미리보기 캡처로 확인, **배포 화면 미확인** |
 
 **진행 중이던 것(미완료)**
-- 없음. 화면 JS는 문법 검사만 했고, 실제 Supabase 프로젝트로는 아직 동작 확인 전
+- 없음(작업 단위로 모두 커밋됨)
 
 ## 2. 다음 할 일(순서대로)
 
-1. **GitHub Desktop에서 Push origin**(사용자) → 배포 주소에서 탭4·5 확인(재생, 사례 카드 → 매트릭스 이동, 실시간 복귀)
-2. 태그: `p1-done`~`p4-done`
-3. P5: PRD Must 대조표, 상태 처리(로딩·오류·빈 결과) 점검, 휴대폰 확인, 네트워크 차단 시험
-4. P6: 시연 시나리오(실시간 → 장차 전망 → 재현 최대치 → PACE), 녹화본, fallback 갱신
+1. **P4 배포 확인**(사용자): 탭5에서 재생 → 탭1~3이 그 시점으로 바뀌는지, 사례 카드 버튼 → 매트릭스로 이동·상단 "가상" 표시, "실시간으로 돌아가기", 탭4 "현재 데이터로 제안 채우기"
+2. **태그**: `p0-done`~`p4-done`(GitHub Desktop History에서 Create Tag 또는 Claude에게 요청)
+3. **P5 배포·검증**(PRD 7장 P5)
+   - PRD Must 항목과 구현 대조표 작성(→ P6 부록 슬라이드)
+   - 상태 처리 점검: 로딩(10초 넘으면 재현 안내), 오류(원천 실패 표시·화면 유지), 빈 결과(전부 정상일 때 "대형 사례 재현 보기" 안내) — PRD 6.1
+   - 휴대폰·노트북 실기기 확인, 네트워크 차단 시 fallback 동작 확인
+4. **P6 발표 패키지**: 시연 시나리오 4개(실시간 브리핑 → 장차 전망 → 재현 최대치 → PACE), 녹화본 2~3분, fallback 갱신, 심사위원용 승인 계정, 리허설
+
+**사용자 결정 대기**
+- 교육 디자인 시스템(4일차 오전 Claude 디자인) 적용 여부 — 적용 시 `css/style.css`의 토큰 값만 교체
+- `supabase/bootstrap-admin.sql`의 실제 이메일을 예시값으로 되돌릴지(사용자 커밋 3b9686a)
+- 천문연 인증키 재발급(대화에 노출됨, 저장소에는 없음)
 
 ## 3. 알려진 문제·주의사항
 
-- `supabase/bootstrap-admin.sql`에 실제 관리자 이메일이 커밋됨(사용자 커밋 3b9686a, 비공개 저장소). 예시값으로 되돌릴지 사용자 결정 대기
-- Vercel 런타임은 Node 24.x(20.x 거부됨). 로컬은 Node 20.20.2 — 사용 기능(fetch, AbortSignal.timeout, --env-file)은 둘 다 지원. 로컬도 24로 올리는 것을 권장
-- 새로 연 터미널부터 `node`가 PATH에 잡힌다. 기존 VS Code 창은 재시작 필요
-- 천문연 인증키가 대화에 노출됐다. 저장소에는 없지만 외부 공개 전에 재발급을 검토한다
-- Supabase 기본 메일 발송은 시간당 몇 통으로 제한된다. 교육 중에는 Auth의 "Confirm email"을 끄는 것을 권장(README)
-- `data/fallback-latest.json`은 정적 파일이라 로그인 없이도 받을 수 있다(공개 데이터, P9에서 제거)
-- supabase-js는 CDN(jsdelivr, 2.45.4 고정)에서 받는다. 발표장 인터넷이 막히면 로그인도 안 되므로 녹화본으로 대비(P6)
-- SRB 판정은 경보 제목의 "Radio Emission/Burst"로 한다. 10cm 전파폭발 경보 코드는 미확인
-- D9(우주환경센터 경보·국가 위기경보), D12(NOAA 27일 전망 아카이브) 제공 여부 미확인
+- **Supabase 무료 프로젝트는 약 1주 미사용 시 일시정지** → 재개 체크리스트 1번. 발표 전날에도 한 번 로그인해 둘 것
+- 런타임: Vercel은 Node 24.x(20.x 거부), 로컬은 Node 20.20.2. 사용 기능(fetch, AbortSignal.timeout, --env-file)은 둘 다 지원. 맞추려면 `winget install OpenJS.NodeJS.LTS`(24)
+- 저장소 위치가 `Desktop\claude\swx-c2\swx-c2`(중첩). 바깥 폴더에는 참고자료 `compass_artifact_...md`(근거자료 조사, 저장소 밖)만 있다. 원본 PRD는 `Desktop\claude\SWx-C2_PRD.md`(저장소의 `docs/PRD.md`가 최신 v2.6)
+- `.env.local`(천문연 키·Supabase 공개값)은 git 제외. PC를 바꾸면 다시 만들어야 한다(README "실행 방법")
+- `data-raw/`(GOES netCDF, GFZ 이력 등 원본, git 제외)를 지우면 재현·학습 스크립트가 다시 내려받는다(수 분)
+- Python 패키지(scikit-learn, h5py)는 사용자 영역 설치. Python 스크립트는 `python -P`로 실행
+- 재현 S등급의 pfu는 근사값(충격파 도달 시 공식값의 최대 약 3배). S 등급은 공식 기록과 일치
+- 재현 비교표는 확정 Kp·3시간 간격이라 실시간 판정보다 정확하고 거칠다(화면에 고지됨)
+- `data/fallback-latest.json`은 로그인 없이 받을 수 있는 정적 파일(공개 데이터, P9에서 제거)
+- supabase-js·Chart.js는 CDN(jsdelivr) 사용. 발표장 인터넷이 막히면 로그인·그래프 불가 → 녹화본 대비(P6)
+- SRB 판정은 경보 제목의 "Radio Emission/Burst" 기준. 10cm 전파폭발 경보 코드는 미확인
+- D9(우주환경센터 경보·국가 위기경보), D12(NOAA 27일 전망 아카이브) 미연동·미확보
 
 ## 4. 확인 방법
 
-- `node --test` → 28건 통과
-- `node --env-file=.env.local scripts/dev-swx.mjs > out.json` → 원천 10개 OK, "스키마 검사 통과"(인증 없이 데이터 계층만 확인)
-- 화면 미리보기(로그인 없이 전 탭): `node scripts/serve.mjs` → http://localhost:8080/tests/ui/preview.html (?data=replay&frame=2024-05-11T03:00:00Z, ?theme=light)
-- 배포 후: 비로그인으로 `/api/swx` → 401. 승인 대기 계정으로 로그인 → "승인 대기" 화면. 승인 후 → R/S/G·원천 상태 표시
+- `node --test` → 61건 통과(네트워크 불필요)
+- `node --env-file=.env.local scripts/dev-swx.mjs > out.json` → 원천 10개 OK, "스키마 검사 통과"(인증 없이 데이터 계층만)
+- 화면 미리보기(로그인 없이 전 탭): `node scripts/serve.mjs` → http://localhost:8080/tests/ui/preview.html
+  - `?data=replay&frame=2024-05-11T03:00:00Z`(재현 최대치), `?scenario=2006-12b`(가상 재구성), `?theme=light`, `?only=replay`(한 탭만)
+  - 캡처: `chrome.exe --headless=new --window-size=1400,2400 --virtual-time-budget=12000 --screenshot=<경로> <주소>`
+- 배포: 비로그인 `/api/swx` → 401, 승인 대기 계정 → "승인 대기" 화면, 승인 후 → 탭 6개
 
-## 5. 계정 메모
+## 5. 계정·환경 메모
 
 - 개발: 계정 A / 교육 중 채팅: 계정 B (PRD 9.5)
+- push는 사용자가 GitHub Desktop으로 한다(Claude는 로컬 커밋까지)
+- 배포 주소 예: `swx-c2-b2s8-...-tae-ok-s-projects.vercel.app`(Vercel 대시보드 Domains에서 정식 주소 확인)
 
 ## 6. 페이즈 체크리스트
 
 ### P0 사전 준비(교육 전)
-- [x] PRD를 `docs/PRD.md`로 저장(v2.3)
-- [ ] GitHub·Vercel 계정, Node 20, Python 3.11 + scikit-learn, Claude Code `/model` Opus 5.5 확인 — Node 20.20.2·Python 3.13(scikit-learn 1.9.1, h5py)·Git 있음
+- [x] PRD를 `docs/PRD.md`로 저장(현재 v2.6)
+- [x] GitHub·Vercel 계정, Node, Python + scikit-learn — Node 20.20.2(로컬)·24.x(Vercel), Python 3.13(scikit-learn 1.9.1, h5py)
 - [x] 천문연 출몰시각 API 활용신청·인증키 확보(실응답 확인 완료)
 - [ ] 우주환경센터 경보·국가 위기경보 제공 여부 확인(없으면 "미연동")
 - [x] SWPC 경보 목록(D13) SRB 항목 확인(Type II/IV Radio Emission) — NOAA 27일 전망 아카이브(D12)는 미확인
 - [ ] 보안 점검: 비공개 저장소, noindex(완료), 부대명·장비명·제원 미포함, 대외 게시 규정 확인
-- [x] 저장소 생성(GitHub Desktop), 문서 4종·`.claude/commands/` 커밋 — GitHub publish는 남음
+- [x] 저장소 생성(GitHub Desktop), 문서 4종·`.claude/commands/` 커밋, GitHub publish·Vercel 배포
 - [x] `samples/` 수집 + `samples/README.md`
 - [x] `data/replay-2024-05.json` 생성(40프레임, 공식 기록 대조)
 - [x] AI 전망 모델 학습(`train_outlook.py`), `reports/outlook-eval.md` 검토, `forecast-model.json`·`tests/fixtures/outlook.json` 커밋
@@ -108,7 +115,7 @@
 
 ### P2.5 AI 장차 전망(3일차 저녁)
 - [x] `js/forecast.js` + T8·T9 통과
-- [x] 탭6(달력·배지·고지 필수, 기간 선택) — 브라우저 확인 전
+- [x] 탭6(달력·배지·고지 필수, 기간 선택) — 배포 화면 확인(사용자)
 
 ### P3 핵심 화면(4일차 오전)
 - [x] 디자인 토큰 → `css/style.css`(임시 토큰. 교육 디자인 시스템이 나오면 토큰 값만 교체)
@@ -116,11 +123,12 @@
 - [x] 상단 4중 표시, 실데이터 연결, 용어 도움말(마우스 오버)
 
 ### P4 재현·판별(4일차 오후)
-- [x] 탭5 재현(재생 시 탭1~3 동기 변화) + 국가 경보 비교 + 사례 가상 재구성 5건
+- [x] 탭5 재현(재생 시 탭1~3 동기 변화) + 국가 경보 비교 + 사례 가상 재구성 5건 — 배포 화면 확인 전
 - [x] 탭4 장애 원인 판별, 용어 도움말(일상 말로 개정)
 
 ### P5 배포·검증(4일차 오후)
-- [ ] Must 대조표, 상태 처리(로딩·오류·빈 결과), 모바일 점검
+- [ ] Must 대조표, 상태 처리(로딩·오류·빈 결과, PRD 6.1), 모바일 점검
+- [ ] 태그 `p0-done`~`p5-done`
 - [ ] 휴대폰·노트북, 네트워크 차단 시험
 
 ### P6 발표 패키지(4일차 저녁)

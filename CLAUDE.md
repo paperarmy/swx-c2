@@ -16,7 +16,7 @@
 
 ## 기술 규칙
 - 빌드 도구·프레임워크 없이 HTML/CSS/순수 JS(ES 모듈). 외부 라이브러리는 Chart.js와 supabase-js만(CDN, 버전 고정).
-- 서버는 api/swx.js(Vercel 서버 함수, Node 20) 하나만. 원천 API는 이 파일에서만 호출한다. 보조 모듈은 api/_lib/에 둔다.
+- 서버는 api/swx.js(Vercel 서버 함수, Node 24.x — 로컬 개발은 Node 20 이상) 하나만. 원천 API는 이 파일에서만 호출한다. 보조 모듈은 api/_lib/에 둔다.
 - 인증(P1.5): Supabase Auth, 역할 2단계(user·admin), 가입 시 승인 대기. 권한 판단은 화면이 아니라 RLS·DB 함수에서 한다. 화면의 메뉴 숨김은 편의일 뿐이다.
 - /api/swx는 승인 사용자의 토큰을 확인한다. 응답이 사용자별이므로 CDN 공용 캐시(s-maxage)를 쓰지 않는다.
 - DB 스키마·정책 변경은 supabase/migrations/에 새 SQL 파일로만 한다. 대시보드에서 직접 고치지 않는다.
