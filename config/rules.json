@@ -1,0 +1,170 @@
+{
+  "version": "0.2",
+  "description": "SWx-C2 판단 규칙(PRD 5장·12.3·부록 A). 임계값·문구·PACE는 이 파일에서만 바꾼다. PACE는 일반 예시이며 부대별로 바꿔 쓴다.",
+  "levels": ["정상", "I 관찰", "II 대비", "III 조치"],
+  "scaleToLevel": { "0": 0, "1": 1, "2": 1, "3": 2, "4": 3, "5": 3 },
+  "kpToG": {
+    "description": "NOAA G척도: Kp 5-(4.67)부터 G1, 6-·7-·8-부터 G2·G3·G4, 9부터 G5(9-는 G4)",
+    "thresholds": [4.67, 5.67, 6.67, 7.67, 9.0]
+  },
+  "defaultMessages": {
+    "0": "영향 없음",
+    "1": "영향 가능성 모니터링"
+  },
+  "texts": {
+    "night": "한반도 야간으로 직접 영향 없음",
+    "dataDelay": "일부 데이터 지연",
+    "allClear": "현재 영향 없음",
+    "srbUnknown": "SRB 판단 불가(전파폭발 경보 자료 없음)",
+    "outlookMissing": "장차 전망 없음"
+  },
+  "horizonLabels": {
+    "now": "현재",
+    "h6": "6시간 내",
+    "h24": "24시간 내",
+    "d3": "3일 내",
+    "d4_27": "4~27일"
+  },
+  "systems": [
+    {
+      "id": "hf_day",
+      "name": "주간 HF망",
+      "drivers": [{ "scale": "R", "minScale": 1, "when": "korea.isDaytime", "source": "NOAA-scales" }],
+      "messages": {
+        "2": "HF 수십분~1시간 두절 가능, 위성망 우선",
+        "3": "낮 반구 HF 수시간 두절, HF를 예비수단에서 제외"
+      },
+      "pace": { "P": "위성통신", "A": "유선망", "C": "VHF 중계", "E": "전령" }
+    },
+    {
+      "id": "gnss",
+      "name": "GNSS 항법·정밀유도",
+      "drivers": [{ "scale": "G", "minScale": 1, "source": "NOAA-scales" }],
+      "messages": {
+        "2": "오차 수 m 이상 가능, 관성항법 병행 준비",
+        "3": "정밀항법 신뢰 불가, 관성항법 병행·사격 시점 조정 검토"
+      },
+      "pace": null,
+      "badges": ["지역 미보정"]
+    },
+    {
+      "id": "timing",
+      "name": "망 시각동기",
+      "drivers": [{ "scale": "G", "minScale": 3, "source": "NOAA-scales" }],
+      "messages": {
+        "2": "동기 오차 감시",
+        "3": "지상 기준시계 전환, holdover 한계시간 점검"
+      },
+      "pace": null
+    },
+    {
+      "id": "uhf_sat",
+      "name": "UHF 위성통신",
+      "drivers": [
+        { "scale": "G", "minScale": 1, "source": "NOAA-scales" },
+        { "scale": "S", "minScale": 1, "source": "NOAA-scales" }
+      ],
+      "messages": {
+        "2": "재접속·전송률 저하, 중요 메시지 중복 전송",
+        "3": "링크 불안정, 고주파 위성망 우선"
+      },
+      "pace": { "P": "Ka·Ku 위성", "A": "유선망", "C": "HF", "E": "전령" },
+      "badges": ["지역 미보정"]
+    },
+    {
+      "id": "hf_long",
+      "name": "야간·장거리 HF망",
+      "drivers": [
+        { "scale": "G", "minScale": 1, "source": "NOAA-scales" },
+        { "scale": "S", "minScale": 1, "source": "NOAA-scales" }
+      ],
+      "messages": {
+        "2": "주파수 잦은 교체, 예보 갱신 주기 단축",
+        "3": "장거리 회선 불안정, 대체 경로 지정"
+      },
+      "pace": { "P": "위성통신", "A": "HF 대체주파수", "C": "유선망", "E": "전령" }
+    },
+    {
+      "id": "shf_sat",
+      "name": "고주파(Ka·Ku) 위성통신",
+      "drivers": [
+        { "scale": "S", "minScale": 1, "source": "NOAA-scales" },
+        { "scale": "G", "minScale": 4, "source": "NOAA-scales" }
+      ],
+      "messages": {
+        "2": "위성체 이상 가능, 위성 관제소 상태 확인",
+        "3": "위성 일시 운용 중단 가능, 대체 위성 확보"
+      },
+      "pace": null
+    },
+    {
+      "id": "leo_isr",
+      "name": "저궤도 정찰위성",
+      "drivers": [
+        { "scale": "G", "minScale": 1, "source": "NOAA-scales" },
+        { "scale": "S", "minScale": 1, "source": "NOAA-scales" }
+      ],
+      "messages": {
+        "2": "촬영 시점·지역 오차, 궤도 재결정 주기 단축",
+        "3": "위성 안전모드 가능, 수집계획 여유 확보"
+      },
+      "pace": null
+    },
+    {
+      "id": "radar",
+      "name": "레이더(조기경보·우주감시)",
+      "drivers": [{ "scale": "G", "minScale": 1, "source": "NOAA-scales" }],
+      "messages": {
+        "2": "탐지 저하 가능, 재밍 판단 전 우주기상 확인",
+        "3": "추적 오류·오탐 가능, 확인 절차 의무화"
+      },
+      "pace": null
+    },
+    {
+      "id": "high_alt",
+      "name": "고고도 항공",
+      "drivers": [{ "scale": "S", "minScale": 2, "source": "NOAA-scales" }],
+      "messages": {
+        "2": "승무원 피폭 관리",
+        "3": "고도·항로 조정, 항공작전 부서 통보"
+      },
+      "pace": null
+    }
+  ],
+  "specialRules": {
+    "srb": {
+      "description": "태양전파폭발 경보가 있고 한반도가 주간이면 지정 체계를 올린다. R등급만으로 GNSS를 올리지 않는다(PRD 12.3-2).",
+      "systems": ["gnss", "radar"],
+      "level": 2,
+      "requireDaytime": true,
+      "unknownSystems": ["gnss"],
+      "text": "태양전파폭발 경보",
+      "source": "Cerruti2008"
+    },
+    "lowAltitude": {
+      "description": "저고도 운용·발사 국면 토글이 켜지면 G1부터 II 대비(PRD 12.3-4, 2022년 2월 저궤도 위성 손실).",
+      "systems": ["leo_isr"],
+      "minG": 1,
+      "level": 2,
+      "text": "저고도 운용·발사 국면",
+      "source": "Berger2023"
+    }
+  },
+  "horizonRules": {
+    "description": "미래 칸 등급 산정(PRD 5.5). 확률에서 나온 칸은 점선으로 표시한다.",
+    "R": [
+      { "field": "R35pct", "minPct": 30, "scale": 3 },
+      { "field": "R12pct", "minPct": 50, "scale": 1 }
+    ],
+    "S": [{ "field": "S1pct", "minPct": 50, "scale": 1 }],
+    "outlook": {
+      "fromH": 4,
+      "toH": 27,
+      "pG3": 0.15,
+      "pG1": 0.5,
+      "level": 1,
+      "source": "SWx-C2-outlook"
+    },
+    "forecastSource": "SWPC-3day"
+  }
+}

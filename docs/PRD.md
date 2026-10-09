@@ -1,6 +1,6 @@
-# SWx-C2 PRD v2.3 (교육기간 구현용)
+# SWx-C2 PRD v2.4 (교육기간 구현용)
 
-Oct 3, 2026 · @태옥 · **v2.3 개정 Oct 9, 2026**
+Oct 3, 2026 · @태옥 · **v2.4 개정 Oct 9, 2026**
 
 > v2.1에서 문서 안의 불일치를 모두 정리했다(변경 내역은 부록 C). 이제 장 사이에 우선순위 규칙이 필요 없으며, 이 문서 자체가 단일 기준이다. 진행 상태와 결정 로그는 `docs/CURRENT_STATUS.md`에 둔다.
 
@@ -250,13 +250,26 @@ Vercel 환경변수는 `KASI_API_KEY`(비밀), `SUPABASE_URL`, `SUPABASE_ANON_KE
 ```json
 {
   "overall": 2,
-  "headline": "향후 24시간 주간 HF 제한 가능, 위성망 우선 운용 권고",
-  "systems": [ { "id": "hf_day", "level": 2, "reasons": ["R3 (X1.4) · 한반도 주간"], "message": "..." } ],
-  "horizon": { "now": 2, "h6": 2, "h24": 1, "d3": 2, "d4_27": 1 }
+  "overallLabel": "II 대비",
+  "headline": "주간 HF망: HF 수십분~1시간 두절 가능, 위성망 우선",
+  "systems": [ {
+    "id": "hf_day", "name": "주간 HF망", "level": 2, "label": "II 대비",
+    "message": "HF 수십분~1시간 두절 가능, 위성망 우선",
+    "reasons": [ { "text": "R3 (X1.4) · 한반도 주간", "source": "NOAA-scales" } ],
+    "pace": { "P": "위성통신", "A": "유선망", "C": "VHF 중계", "E": "전령" },
+    "badges": [],
+    "cells": { "now": { "level": 2, "label": "II 대비", "reasons": [], "probabilistic": false }, "h6": {}, "h24": {}, "d3": {}, "d4_27": {} }
+  } ],
+  "horizon": { "now": 2, "h6": 2, "h24": 1, "d3": 2, "d4_27": 1 },
+  "notices": [ "일부 데이터 지연: D5" ],
+  "rulesVersion": "0.2"
 }
 ```
 
-`horizon.d4_27`은 5.5의 4~27일 전망 칸 결과이며 최대 1(I 관찰)이다.
+- `reasons`는 `{ text, source }` 객체다. `source`는 출처 태그(12.3-1)이며 화면 근거 표시에 함께 낸다.
+- `systems[].cells`는 매트릭스(탭2)의 칸별 결과다. 칸을 누르면 그 칸의 `reasons`를 보여준다. `probabilistic`이 true인 칸은 점선 테두리(5.5).
+- `systems[].level`·`reasons`는 `cells.now`와 같다. `horizon`은 열별 최댓값이며, `horizon.d4_27`은 최대 1(I 관찰)이다.
+- `notices`는 데이터 지연(`sources[].ok=false`이고 `note`가 없는 원천), SRB 판단 불가, 장차 전망 없음 안내다.
 
 ### 5.3 필수 테스트 케이스
 
@@ -1137,6 +1150,15 @@ I 관찰 단계 문구는 공통으로 "영향 가능성 모니터링"을 쓰고
 | 15 | 인계 문서 HANDOFF·PROGRESS·DECISIONS 3종 | `docs/CURRENT_STATUS.md` 하나로 통합. 문서 4종 체계(9.1) | 4.1, 7, 9, 11.7 |
 | 16 | 8장 CLAUDE.md 초안과 실제 파일 이중 관리 | 저장소 `CLAUDE.md`를 단일 기준으로, 8장은 안내만 | 8 |
 | 17 | 우주전파센터(국립전파연구원) vs 우주환경센터(우주항공청) 표기 | 우주환경센터로 통일 | 2, 3.1, 7 |
+
+### v2.4 (2026-10-09) — P2 판단 엔진 구현 반영
+
+| # | 내용 | 이유 | 반영 위치 |
+| --- | --- | --- | --- |
+| 1 | 엔진 출력에 `cells`(칸별 결과), `notices`, `overallLabel`, `rulesVersion` 추가, `reasons`를 `{text, source}`로 | 매트릭스 칸 근거·출처 표시(6장, 12.3) | 5.2 |
+| 2 | Kp→G 변환 기준도 `rules.json`(`kpToG`)에 둔다 | 브라우저 엔진은 서버 모듈을 쓸 수 없고, 숫자는 규칙 파일에만 둔다 | 5.1 |
+| 3 | 6시간·24시간 칸은 기준 시각부터의 누적 구간((T, T+6h], (T, T+24h]) | 5.5 해석 명확화 | 5.5 |
+| 4 | 4~27일 칸: pG3 기준 충족 시 G3급, pG1 기준만 충족 시 G1급으로 보고 체계별 적용 시작 등급과 비교(상한 I) | Ka·Ku 위성(G4부터)·시각동기(G3부터)가 G1 확률로 올라가지 않도록 | 5.5 |
 
 ### v2.3 (2026-10-09) — 교육용 Supabase 로그인·승인 추가(P1.5)
 

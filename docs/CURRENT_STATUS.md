@@ -4,10 +4,14 @@
 
 ## 1. 지금 상태
 
-**현재 페이즈**: P1.5 로그인·승인 — 코드 완료, **Supabase 프로젝트 연결·배포 검증 남음**(사용자 계정 필요)
+**현재 페이즈**: P2 판단 엔진 — **완료**(교육 전 앞당겨 진행, 사용자 결정). 배포 검증(P1·P1.5)은 사용자 진행 중
 (P1 데이터 계층도 코드 완료, 배포 검증만 남음. 두 페이즈를 한 번의 배포로 함께 검증한다)
 
 **마지막으로 완료한 것**
+- **P2 판단 엔진**: `config/rules.json`(부록 A 9개 체계, horizonRules, SRB·저고도 규칙, 출처 태그), `js/engine.js` evaluate(state, rules, options)
+  - T1~T7, T10~T14 + 미래 칸·Kp→G·주야 구간 테스트 15건 통과(전체 44건)
+  - 실데이터·재현 40프레임 모두 예외 없이 판정, 재현 최대치(2024-05-11 03 UTC) 종합 III
+- Vercel 첫 빌드 실패(Node 20.x 지원 종료) → `engines.node` 24.x로 변경(커밋 741816c), Supabase 공개 설정 반영(0b270d5). **사용자 push 필요**
 - **P0 AI 전망 모델 학습**: `config/forecast-model.json`, `reports/outlook-eval.md`, `tests/fixtures/outlook.json`
   - G1+: 모든 구간 ML 채택(BSS 기후학 대비 +0.035, 27일 재귀 대비 +0.015)
   - G3+: h=1~3일만 ML, 4~27일은 27일 재귀 표시(재귀를 못 이김)
@@ -25,15 +29,14 @@
 
 ## 2. 다음 할 일(순서대로)
 
-1. **Supabase 프로젝트 생성**(사용자) → SQL Editor에서 마이그레이션 실행 → Auth 설정(README "Supabase 설정")
-2. 프로젝트 URL·anon 키를 알려주면 `js/config.js`에 넣고 커밋(공개 키라 커밋해도 됨)
-3. **GitHub Desktop으로 publish** → **Vercel Import**, 환경변수 3개(`KASI_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`)
-4. 배포 URL에서 관리자 계정 가입 → `bootstrap-admin.sql`로 최초 관리자 지정 → 시험 계정 가입·승인 → 데이터 열람 확인 → `p1-done`, `p1.5-done` 태그
-5. P2 판단 엔진(교육 3일차 저녁 예정). 교육 전에 미리 할지 결정 필요(PRD 7장: 교육 중 산출물은 커밋 이력으로 구분)
+1. **GitHub Desktop에서 Push origin**(사용자) → Vercel 자동 재배포. 환경변수 3개(`KASI_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`) 확인
+2. Supabase Site URL을 Vercel 주소로
+3. 배포 URL에서 관리자 계정 가입 → `bootstrap-admin.sql`로 최초 관리자 지정 → 시험 계정 가입·승인 → 데이터 열람 확인 → `p1-done`, `p1.5-done`, `p2-done` 태그
+4. 다음 페이즈: P2.5 AI 장차 전망 연동(`js/forecast.js` + T8·T9, 탭6) → P3 핵심 화면
 
 ## 3. 알려진 문제·주의사항
 
-- **Node 20은 2026-04 지원 종료**. Vercel이 20.x 런타임을 거부하면 `package.json`의 `engines.node`를 22.x로 바꾼다
+- Vercel 런타임은 Node 24.x(20.x 거부됨). 로컬은 Node 20.20.2 — 사용 기능(fetch, AbortSignal.timeout, --env-file)은 둘 다 지원. 로컬도 24로 올리는 것을 권장
 - 새로 연 터미널부터 `node`가 PATH에 잡힌다. 기존 VS Code 창은 재시작 필요
 - 천문연 인증키가 대화에 노출됐다. 저장소에는 없지만 외부 공개 전에 재발급을 검토한다
 - Supabase 기본 메일 발송은 시간당 몇 통으로 제한된다. 교육 중에는 Auth의 "Confirm email"을 끄는 것을 권장(README)
@@ -78,13 +81,13 @@
 - [x] Supabase 마이그레이션(profiles, 트리거, RLS, 관리자 함수), 최초 관리자 SQL
 - [x] `/api/swx` 토큰·승인 확인 + 테스트(401·403·503·캐시)
 - [x] 로그인·가입·승인 대기 화면, 사용자 관리 화면
-- [ ] Supabase 프로젝트 생성·마이그레이션 실행·`js/config.js` 설정
+- [x] Supabase 프로젝트 생성·마이그레이션 실행·`js/config.js` 설정(비로그인 접근 거부 확인, 이메일 확인 끔)
 - [ ] 배포 URL에서 가입 → 승인 → 열람, 미승인 403, 비로그인 401 확인
 
 ### P2 판단 엔진(3일차 저녁)
-- [ ] `config/rules.json`(부록 A 9개 체계, horizonRules, source 태그)
-- [ ] `js/engine.js` evaluate(state, rules, options)
-- [ ] T1~T7, T10~T14 통과
+- [x] `config/rules.json`(부록 A 9개 체계, horizonRules, source 태그)
+- [x] `js/engine.js` evaluate(state, rules, options)
+- [x] T1~T7, T10~T14 통과
 
 ### P2.5 AI 장차 전망(3일차 저녁)
 - [ ] `js/forecast.js` + T8·T9 통과
@@ -139,3 +142,8 @@
 | 2026-10-09 | G1·G3 판정은 NOAA 표기대로 Kp 5-(4.67)·7-(6.67)부터 | SWPC 예보 표기와 일치 |
 | 2026-10-09 | 전망 모델 학습 1996~2019(대상일 기준), 클래스 가중치·확률 보정 없음 | PRD 5.4. 고확률 구간 과신은 보고서에 공개, 보정은 P10 |
 | 2026-10-09 | Python 실행은 `python -P`, 패키지는 사용자 영역(pip --user) | 현재 폴더 모듈 로딩 차단, 시스템 변경 최소화 |
+| 2026-10-09 | P2 판단 엔진을 교육 전에 앞당겨 진행 | 사용자 결정. 발표의 "개발 과정"에서 사전 개발 범위로 밝힌다(PRD 7장) |
+| 2026-10-09 | Vercel 런타임 Node 24.x | Vercel이 20.x 빌드를 거부 |
+| 2026-10-09 | 엔진 출력에 칸별 결과(cells)·notices 추가, reasons는 {text, source}(PRD v2.4) | 매트릭스 칸 근거·출처 표시 |
+| 2026-10-09 | Kp→G 기준값도 rules.json에 둔다 | 브라우저 엔진은 서버 모듈을 못 쓰고, 숫자는 규칙 파일에만 |
+| 2026-10-09 | 지속·반복 상향·해제(T15·T16)는 P8 유지 | 이력 DB 필요(PRD 12.3) |
