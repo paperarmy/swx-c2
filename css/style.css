@@ -6,6 +6,7 @@
   --text: #e6edf3;
   --muted: #8b98a5;
   --accent: #4c9aff;
+  --prob: #9fb3c8; /* 확률 농도(무채색 계열, 단계 색과 구분) */
   --lv0: #2ea043; /* 정상 */
   --lv1: #d4a72c; /* I 관찰 */
   --lv2: #e8772e; /* II 대비 */
@@ -57,6 +58,17 @@ th { color: var(--muted); font-weight: normal; }
 
 .scales { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); text-align: center; }
 .scales .value { font-size: 2.5rem; font-weight: bold; }
+
+/* 탭6 장차 전망 */
+.badge-line { margin-top: 0.5rem; color: var(--muted); }
+.calendar { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.5rem; margin-top: var(--gap); }
+.calendar .day { border: 1px dashed var(--border); border-radius: var(--radius); padding: 0.5rem;
+  background: color-mix(in srgb, var(--prob) calc(var(--p) * 60%), transparent); }
+.calendar .date { color: var(--muted); font-size: 0.8rem; }
+.calendar .g3 { font-size: 1.4rem; font-weight: bold; }
+.calendar .g1, .calendar .basis { font-size: 0.8rem; }
+.period-result { margin-top: 0.5rem; font-size: 1.2rem; font-weight: bold; }
+input[type="date"] { width: auto; }
 
 footer { color: var(--muted); font-size: 0.85rem; padding: var(--gap); text-align: center; }
 [hidden] { display: none !important; }

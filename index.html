@@ -49,8 +49,13 @@
       <p id="pending-text"></p>
     </section>
 
-    <!-- 승인 사용자: 데이터 확인(P3에서 탭 6개로 교체) -->
+    <!-- 승인 사용자: 탭(P3에서 탭1~5를 채운다) -->
     <section id="view-app" hidden>
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="tab-status" aria-selected="true">현황</button>
+        <button role="tab" data-tab="tab-outlook" aria-selected="false">6 장차 전망</button>
+      </nav>
+      <div id="tab-status" role="tabpanel">
       <div class="panel">
         <div>기준 시각 <strong id="as-of">-</strong> · 모드 <span class="badge" id="mode">-</span></div>
         <p class="msg" id="data-msg" role="status"></p>
@@ -64,6 +69,8 @@
         <div>한반도(대전) <span id="daynight">-</span></div>
         <div class="row" id="sources"></div>
       </div>
+      </div>
+      <div id="tab-outlook" role="tabpanel" hidden></div>
     </section>
   </main>
 

@@ -105,7 +105,7 @@ NOAA 엔드포인트는 배열·객체 형식이 제각각이다. P0에서 Claud
 
 이 스키마가 단일 기준이다. 5.4의 출력 형식은 이 중 `outlook`·`outlookSkill`·`rBaseline` 부분을 설명한 것이다. `mode`는 `live`, `fallback`, `replay` 중 하나다. `history.dailyMaxKp`는 최근 60일을 담는다. 숫자는 모두 형식 예시다.
 
-- `outlook`·`outlookSkill`·`rBaseline`은 `/api/swx`가 아니라 브라우저의 `forecast.js`가 `history`로 계산해 채운다. 서버는 `history`까지만 책임진다.
+- `outlook`·`outlookSkill`·`rBaseline`은 `/api/swx`가 아니라 브라우저의 `forecast.js`가 `history`로 계산해 채운다. 서버는 `history`까지만 책임진다. 실제 형식(P2.5): `outlook[]`는 `{ dateUtc, h, pG1, pG3, basisG1, basisG3, basis }`(basis는 둘이 같으면 그 값, 다르면 `mixed`), `outlookSkill`은 `{ trainPeriod, validPeriod, G1, G3, basis }`(G1·G3는 `forecast-model.json`의 skill 그대로), 이력이 모자란 날짜는 `recurrence` 또는 `climatology`로 내려간다.
 - `srb`는 D13을 받지 못하면 `null`이다. 엔진은 `null`을 "SRB 판단 불가"로 처리한다(12.3). `active`는 최근 3시간 안에 제목에 "Radio Emission/Burst"가 있는 경보가 있었는지이고, `events`는 최근 24시간 전파 경보 목록이다.
 - `series`는 탭1 미니 그래프용이다. X선은 장파(0.1~0.8nm) 10분 간격 24시간, Kp는 NOAA 관측 3시간 간격 약 7일이다.
 - `korea.sunSource`는 `kasi`(천문연 D7) 또는 `builtin`(내장 계산)이다.

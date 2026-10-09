@@ -2,6 +2,8 @@
 // 데이터 화면은 /api/swx 연결 확인용 최소 형태이며 P3에서 탭 6개로 교체한다.
 import { supabase, isConfigured, currentProfile, signIn, signUp, signOut, authFetch } from './auth.js';
 import { fmtKst, el } from './format.js';
+import { withOutlook } from './forecast.js';
+import { renderOutlook } from './render/outlook.js';
 
 const API_TIMEOUT_MS = 10000; // PRD 3.5
 const REFRESH_MS = 5 * 60 * 1000;
@@ -10,6 +12,12 @@ const $ = (id) => document.getElementById(id);
 
 let refreshTimer = null;
 let signupMode = false;
+let modelPromise = null; // config/forecast-model.json(한 번만 읽음)
+
+function loadModel() {
+  modelPromise ??= fetch('config/forecast-model.json').then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  return modelPromise;
+}
 
 function show(viewId) {
   for (const id of VIEWS) $(id).hidden = id !== viewId;
@@ -65,7 +73,7 @@ async function loadState() {
       return;
     }
   }
-  render(state, note);
+  render(withOutlook(state, await loadModel()), note);
 }
 
 function render(state, note) {
@@ -82,6 +90,18 @@ function render(state, note) {
   $('sources').replaceChildren(
     ...state.sources.map((s) => el('span', { title: s.error ?? s.note ?? '' }, el('span', { class: `dot ${s.ok ? 'ok' : 'fail'}` }), s.id)),
   );
+  renderOutlook($('tab-outlook'), state);
+}
+
+// 탭 전환
+for (const tab of document.querySelectorAll('[data-tab]')) {
+  tab.addEventListener('click', () => {
+    for (const t of document.querySelectorAll('[data-tab]')) {
+      const on = t === tab;
+      t.setAttribute('aria-selected', String(on));
+      $(t.dataset.tab).hidden = !on;
+    }
+  });
 }
 
 // 로그인·가입 폼
