@@ -8,6 +8,11 @@
 (P1 데이터 계층도 코드 완료, 배포 검증만 남음. 두 페이즈를 한 번의 배포로 함께 검증한다)
 
 **마지막으로 완료한 것**
+- **P0 AI 전망 모델 학습**: `config/forecast-model.json`, `reports/outlook-eval.md`, `tests/fixtures/outlook.json`
+  - G1+: 모든 구간 ML 채택(BSS 기후학 대비 +0.035, 27일 재귀 대비 +0.015)
+  - G3+: h=1~3일만 ML, 4~27일은 27일 재귀 표시(재귀를 못 이김)
+  - 2024-05-08 기준 D+3(실제 G5) G3+ 확률 2.7% → CME 폭풍은 예측 불가함을 보여주는 사례
+- **P0 재현 데이터**: `data/replay-2024-05.json` 40프레임(GOES·GFZ·당시 SWPC 3일 예보), R·G·S 등급을 공식 기록과 대조 확인
 - P1.5 로그인·승인(Supabase): 가입 → 승인 대기 → 관리자 승인 → 열람
   - `supabase/migrations/20261009000000_auth_profiles.sql`: profiles, 가입 트리거, `is_active()`·`is_admin()`·`admin_set_profile()`, RLS
   - `/api/swx`: Bearer 토큰 확인(없음·무효 401, 미승인 403, 설정 없음 503), 함수 메모리 5분 캐시
@@ -24,7 +29,7 @@
 2. 프로젝트 URL·anon 키를 알려주면 `js/config.js`에 넣고 커밋(공개 키라 커밋해도 됨)
 3. **GitHub Desktop으로 publish** → **Vercel Import**, 환경변수 3개(`KASI_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`)
 4. 배포 URL에서 관리자 계정 가입 → `bootstrap-admin.sql`로 최초 관리자 지정 → 시험 계정 가입·승인 → 데이터 열람 확인 → `p1-done`, `p1.5-done` 태그
-5. P0 남은 작업: `data/replay-2024-05.json`, AI 전망 모델 학습 → 그다음 P2
+5. P2 판단 엔진(교육 3일차 저녁 예정). 교육 전에 미리 할지 결정 필요(PRD 7장: 교육 중 산출물은 커밋 이력으로 구분)
 
 ## 3. 알려진 문제·주의사항
 
@@ -51,15 +56,15 @@
 
 ### P0 사전 준비(교육 전)
 - [x] PRD를 `docs/PRD.md`로 저장(v2.3)
-- [ ] GitHub·Vercel 계정, Node 20, Python 3.11 + scikit-learn, Claude Code `/model` Opus 5.5 확인 — Node 20.20.2·Python 3.13·Git 있음, scikit-learn 미확인
+- [ ] GitHub·Vercel 계정, Node 20, Python 3.11 + scikit-learn, Claude Code `/model` Opus 5.5 확인 — Node 20.20.2·Python 3.13(scikit-learn 1.9.1, h5py)·Git 있음
 - [x] 천문연 출몰시각 API 활용신청·인증키 확보(실응답 확인 완료)
 - [ ] 우주환경센터 경보·국가 위기경보 제공 여부 확인(없으면 "미연동")
 - [x] SWPC 경보 목록(D13) SRB 항목 확인(Type II/IV Radio Emission) — NOAA 27일 전망 아카이브(D12)는 미확인
 - [ ] 보안 점검: 비공개 저장소, noindex(완료), 부대명·장비명·제원 미포함, 대외 게시 규정 확인
 - [x] 저장소 생성(GitHub Desktop), 문서 4종·`.claude/commands/` 커밋 — GitHub publish는 남음
 - [x] `samples/` 수집 + `samples/README.md`
-- [ ] `data/replay-2024-05.json` 생성
-- [ ] AI 전망 모델 학습(`train_outlook.py`), `reports/outlook-eval.md` 검토, `forecast-model.json`·`tests/fixtures/outlook.json` 커밋
+- [x] `data/replay-2024-05.json` 생성(40프레임, 공식 기록 대조)
+- [x] AI 전망 모델 학습(`train_outlook.py`), `reports/outlook-eval.md` 검토, `forecast-model.json`·`tests/fixtures/outlook.json` 커밋
 - [ ] 빈 화면 + `/api/swx` Vercel 배포 경로 검증
 - [x] `fallback-latest.json` 생성 — 발표 전날·당일 아침에 다시 생성
 - [ ] 계정 A·B 전환 리허설, Git 자격 증명 설정
@@ -128,3 +133,9 @@
 | 2026-10-09 | `/api/swx` 캐시를 CDN 공용(s-maxage)에서 함수 메모리 5분으로 변경, `private, no-store` | 인증 응답이 공용 캐시를 통해 미인증 사용자에게 나갈 위험 차단 |
 | 2026-10-09 | Supabase 설정이 없으면 `/api/swx`는 503(열어두지 않음) | 설정 누락 시 무인증 공개를 막기 위함 |
 | 2026-10-09 | supabase-js 2.45.4를 jsdelivr CDN ESM으로 사용 | 빌드 도구 없는 구조 유지 |
+| 2026-10-09 | 재현 S등급은 GOES-18 SGPS 차등 채널 적분 근사로 산출, pfu는 근사값으로 표기 | 운영 적분값 아카이브 없음. S 등급은 SGAS 공식 기록과 일치 확인 |
+| 2026-10-09 | 재현 SRB = 사건 목록의 1415 MHz 전파폭발(직전 3시간) | GNSS L1에 가장 가까운 관측 주파수 |
+| 2026-10-09 | 재현·전망 계산의 NOAA 척도 변환(fluxToR·pfuToS·kpToG)은 api/_lib/transform.js에 둔다 | 공식 척도 정의이며 판단 임계값이 아님. 엔진·스크립트 공용 |
+| 2026-10-09 | G1·G3 판정은 NOAA 표기대로 Kp 5-(4.67)·7-(6.67)부터 | SWPC 예보 표기와 일치 |
+| 2026-10-09 | 전망 모델 학습 1996~2019(대상일 기준), 클래스 가중치·확률 보정 없음 | PRD 5.4. 고확률 구간 과신은 보고서에 공개, 보정은 P10 |
+| 2026-10-09 | Python 실행은 `python -P`, 패키지는 사용자 영역(pip --user) | 현재 폴더 모듈 로딩 차단, 시스템 변경 최소화 |
