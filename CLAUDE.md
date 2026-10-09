@@ -24,6 +24,8 @@
 - 판단 엔진은 순수 함수 `evaluate(state, rules, options)`(js/engine.js). 판단 임계값·문구·PACE는 config/rules.json에만 둔다. 코드에 숫자를 직접 쓰지 않는다.
 - AI 장차 전망: 학습은 scripts/train_outlook.py(Python, scikit-learn 로지스틱 회귀)에서 사전에 1회. 브라우저(js/forecast.js)는 config/forecast-model.json의 계수로 계산만 한다. 클래스 가중치는 쓰지 않는다.
 - scripts/, samples/, reports/, docs/, tests/는 배포물에 포함하지 않는다(.vercelignore).
+- scripts/의 Python은 netCDF 추출·모델 학습처럼 Node로 하기 어려운 사전 작업에만 쓴다. SwxState 조립은 Node(api/_lib 재사용)로 한다. 실행은 `python -P`.
+- 내려받은 원본 자료는 data-raw/(git 제외)에 둔다.
 - 시간은 저장·계산 모두 UTC, 화면 표시만 KST. 시각 필드명에 Utc/Kst 접미사를 붙인다.
 - 화면은 5분마다 자동 새로고침하고, /api/swx 실패 또는 10초 초과 시 data/fallback-latest.json을 쓴다.
 - 단계 명칭은 정상 · I 관찰 · II 대비 · III 조치만 쓴다. 관심·주의·경계·심각(국가 위기경보 명칭)은 쓰지 않는다.

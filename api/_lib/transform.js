@@ -28,6 +28,22 @@ function mean(values) {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
 }
 
+// NOAA 척도 정의(공식 기준값이며 작전 판단 임계값이 아니다. 판단 임계값은 rules.json).
+// R: X선 1-8Å 플럭스 M1·M5·X1·X10·X20 / S: ≥10 MeV 10·100·10³·10⁴·10⁵ pfu
+const R_THRESHOLDS = [1e-5, 5e-5, 1e-4, 1e-3, 2e-3];
+const S_THRESHOLDS = [10, 100, 1e3, 1e4, 1e5];
+const levelOf = (v, thresholds) => (v === null ? null : thresholds.filter((t) => v >= t).length);
+
+export const fluxToR = (flux) => levelOf(flux, R_THRESHOLDS);
+export const pfuToS = (pfu) => levelOf(pfu, S_THRESHOLDS);
+
+// G: Kp 5→G1 … 9→G5. Kp는 1/3 단위(4.67=5-)이며 NOAA는 5-부터 G1, 9-는 G4로 본다.
+export function kpToG(kp) {
+  if (kp === null) return null;
+  const g = Math.round(kp) - 4;
+  return Math.max(0, Math.min(kp >= 9 - 1e-6 ? 5 : 4, g));
+}
+
 // D1 → scales, forecast
 export function parseScales(raw) {
   const cur = raw?.['0'];

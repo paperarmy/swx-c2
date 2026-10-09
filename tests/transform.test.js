@@ -22,6 +22,15 @@ test('xrayClass: 등급 경계와 나눗셈 오차', () => {
   assert.equal(t.xrayClass(null), null);
 });
 
+test('NOAA 척도 변환: 플럭스→R, pfu→S, Kp→G', () => {
+  assert.deepEqual([9.9e-6, 1e-5, 5e-5, 1e-4, 5.8e-4, 1e-3, 2e-3].map(t.fluxToR), [0, 1, 2, 3, 3, 4, 5]);
+  assert.deepEqual([9.9, 10, 116, 1000, 1e5].map(t.pfuToS), [0, 1, 2, 3, 5]);
+  // SWPC 3일 예보 표기와 대조: 4.67(G1) 5.33(G1) 5.67(G2) 6.67(G3) 7.00(G3) 8.33(G4)
+  assert.deepEqual([4.33, 4.67, 5.33, 5.67, 6.67, 7.0, 8.33, 8.67, 9.0].map(t.kpToG), [0, 1, 1, 2, 3, 3, 4, 4, 5]);
+  assert.equal(t.fluxToR(null), null);
+  assert.equal(t.kpToG(null), null);
+});
+
 test('D1 parseScales: 현재 등급과 3일 예보', () => {
   const { scales, forecast } = t.parseScales(sample('d1-noaa-scales.json'));
   assert.deepEqual(scales, { R: 0, S: 0, G: 0 });

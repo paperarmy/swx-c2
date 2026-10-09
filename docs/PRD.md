@@ -120,8 +120,19 @@ NOAA 엔드포인트는 배열·객체 형식이 제각각이다. P0에서 Claud
 ### 3.3 재현 데이터
 
 - 대상: 2024년 5월 9~13일(G5 폭풍).
-- Kp는 D8로 내려받는다. X-ray·양성자는 NOAA 과거 GOES 자료를 P0에서 변환하되, 변환이 까다로우면 주요 플레어 사건 목록만 시각과 등급으로 입력한다.
-- 결과물은 3시간 간격 `SwxState` 배열 하나(`data/replay-2024-05.json`)로 저장하고 배포물에 포함한다.
+- 결과물은 3시간 간격 `SwxState` 배열 하나(`data/replay-2024-05.json`, 2024-05-09 03:00~05-14 00:00 UTC, 40프레임)로 저장하고 배포물에 포함한다. `mode`는 `replay`.
+- 각 프레임(기준 시각 T)은 **T까지 알 수 있었던 값만** 쓴다(미래 정보 금지).
+
+| 항목 | 원천 | 산출 |
+| --- | --- | --- |
+| R | GOES-16 XRS-B 1분 평균(NOAA NCEI) | T 직전 3시간 최대 플럭스 → NOAA R척도 |
+| S | GOES-18 SGPS 5분 평균(NCEI), 차등 채널을 ≥10 MeV로 적분 | T 직전 3시간 최대 → S척도. pfu는 근사값(운영값과 최대 약 3배 차이), S 등급은 SGAS 공식 기록(S1 개시 05-10 13:05 UTC, S2 정점 05-10 15:15·05-11 09:10 UTC)과 일치 확인 |
+| G | GFZ 확정 Kp(D8) | T 직전 3시간 구간 Kp → G척도 |
+| 예보·kpForecast | SWPC 3일 예보 당시 발표본(00:30·12:30 UTC, NCEI 보관) | T 이전 최신 발표본 |
+| SRB | SWPC 사건 목록의 1415 MHz 전파폭발(RBR) | T 직전 3시간 안에 있으면 진행 중 |
+| history | GFZ Kp·SN·F10.7 | T 이전 자료만 |
+
+- 생성: `python -P scripts/extract_goes.py`(netCDF → 중간 JSON) → `node scripts/make-replay.mjs`. 원본은 `data-raw/`(git 제외)에 보관한다.
 
 ### 3.4 장차 전망 모델 학습 데이터
 
