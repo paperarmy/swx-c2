@@ -61,11 +61,19 @@
         <button role="tab" data-tab="tab-brief" aria-selected="true">1 지휘관 브리핑</button>
         <button role="tab" data-tab="tab-matrix" aria-selected="false">2 영향 매트릭스</button>
         <button role="tab" data-tab="tab-pace" aria-selected="false">3 PACE 권고</button>
+        <button role="tab" data-tab="tab-diagnose" aria-selected="false">4 장애 원인 판별</button>
+        <button role="tab" data-tab="tab-replay" aria-selected="false">5 과거 사례 재현</button>
         <button role="tab" data-tab="tab-outlook" aria-selected="false">6 장차 전망</button>
       </nav>
+      <div id="replay-banner" class="replay-banner" role="status" hidden>
+        <span id="replay-banner-text"></span>
+        <button id="replay-exit" type="button">실시간으로 돌아가기</button>
+      </div>
       <div id="tab-brief" role="tabpanel"><div class="panel skeleton">데이터를 불러오는 중…</div></div>
       <div id="tab-matrix" role="tabpanel" hidden></div>
       <div id="tab-pace" role="tabpanel" hidden></div>
+      <div id="tab-diagnose" role="tabpanel" hidden></div>
+      <div id="tab-replay" role="tabpanel" hidden></div>
       <div id="tab-outlook" role="tabpanel" hidden></div>
     </section>
   </main>

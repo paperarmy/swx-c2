@@ -1,0 +1,73 @@
+{
+  "description": "탭5 과거 사례(PRD 12.5). replay는 관측자료 재생, scenario는 사례의 핵심 조건을 오늘 규칙으로 판정해 보는 가상 재구성(관측자료 아님). 근거는 PRD 부록 B.",
+  "replays": [
+    {
+      "id": "2024-05",
+      "title": "2024년 5월 G5 폭풍(Gannon)",
+      "file": "data/replay-2024-05.json",
+      "summary": "21년 만의 최대 지자기폭풍(G5)입니다. 5월 9~11일 X급 플레어가 이어졌고, 11일에는 G5와 태양복사폭풍 S2가 겹쳤습니다. 한반도 상공 전리층 전자량(TEC)이 평소보다 최대 70% 줄었고 밤에는 강한 신틸레이션이 관측되었습니다.",
+      "lesson": "같은 G5라도 낮에는 TEC 감소, 밤에는 신틸레이션처럼 한반도 영향 양상이 다릅니다. 그래서 GNSS·UHF 위성통신에 '지역 미보정' 배지를 둡니다.",
+      "officialEvents": [
+        { "timeKst": "2024-05-11 02:46", "label": "G4 발생", "kind": "noaa" },
+        { "timeKst": "2024-05-11 03:50", "label": "국가 위기경보 '관심'", "kind": "national" },
+        { "timeKst": "2024-05-11 08:35", "label": "G5 발생", "kind": "noaa" },
+        { "timeKst": "2024-05-11 09:30", "label": "국가 위기경보 '주의'", "kind": "national" }
+      ],
+      "officialNote": "국가 위기경보는 2024-05-21 11:00 해제. 5개 분야 피해 보고 없음(우주환경센터 공지).",
+      "sources": ["KSWC-2024-05", "Lee2024", "Yang2025"]
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "1967-05",
+      "title": "1967년 5월 조기경보 레이더 '재밍' 오인 위기",
+      "summary": "거대한 태양전파폭발이 0.01~9 GHz 대역을 덮어, 태양 쪽을 향하던 미국 탄도미사일 조기경보 레이더(BMEWS) 3곳이 사실상 재밍 상태가 되었습니다. 미 공군 태양예보관이 태양 현상으로 판정해 소련의 재밍으로 오인하는 것을 막았습니다.",
+      "lesson": "레이더·통신 장애를 적 재밍으로 판단하기 전에 우주기상을 먼저 확인해야 합니다(탭4 장애 원인 판별의 근거).",
+      "hypothetical": "같은 조건(X급 플레어 + 태양전파폭발)이 한반도 주간에 일어났다고 가정",
+      "asOfUtc": "1967-05-23T03:00:00Z",
+      "state": { "scales": { "R": 3, "S": 0, "G": 0 }, "metrics": { "xrayClass": "X급(추정)" }, "korea": { "isDaytime": true }, "srb": { "active": true, "lastAlertUtc": "1967-05-23T02:50:00Z", "events": [] } },
+      "sources": ["Knipp2016"]
+    },
+    {
+      "id": "2003-10",
+      "title": "2003년 10~11월 할로윈 폭풍",
+      "summary": "X급 플레어와 강한 태양복사폭풍, G5 지자기폭풍이 2주 가까이 이어졌습니다. R3 플레어 뒤 HF가 2시간 넘게 끊겨 극항로 항공편이 우회했고, 미국 GPS 보강서비스(WAAS)가 약 30시간 중단되었습니다.",
+      "lesson": "R3 한 번으로도 HF에 의존하는 장거리 지휘통신이 우회 비용을 치릅니다. 작전 조치 기준선을 3등급(II 대비)으로 둔 근거입니다.",
+      "hypothetical": "R·S·G가 동시에 높은 복합 상황을 한반도 주간에 가정",
+      "asOfUtc": "2003-10-29T03:00:00Z",
+      "state": { "scales": { "R": 3, "S": 4, "G": 5 }, "metrics": { "xrayClass": "X급", "kp": 9 }, "korea": { "isDaytime": true }, "srb": { "active": false, "lastAlertUtc": null, "events": [] } },
+      "sources": ["NOAA2004", "Xue2023"]
+    },
+    {
+      "id": "2006-12a",
+      "title": "2006년 12월 5일: X선 최강, GPS는 정상",
+      "summary": "X선 기준으로 매우 강한 플레어였지만 GPS 신호는 약해지지 않았습니다. 전파폭발이 GNSS 대역에서 강하지 않았기 때문입니다.",
+      "lesson": "R(X선) 등급만으로 GNSS 장애를 판단하면 안 됩니다. 그래서 SWx-C2는 R등급으로 GNSS를 올리지 않습니다.",
+      "hypothetical": "한반도 주간, X급 플레어(R3), 태양전파폭발 경보 없음으로 가정",
+      "asOfUtc": "2006-12-05T03:00:00Z",
+      "state": { "scales": { "R": 3, "S": 0, "G": 0 }, "metrics": { "xrayClass": "X급" }, "korea": { "isDaytime": true }, "srb": { "active": false, "lastAlertUtc": null, "events": [] } },
+      "sources": ["Carrano2009"]
+    },
+    {
+      "id": "2006-12b",
+      "title": "2006년 12월 6일: 태양전파폭발로 GPS 대규모 장애",
+      "summary": "태양활동이 가장 약한 시기였는데도 1.4 GHz 대역에서 기록적인 전파폭발이 일어났습니다. 낮 반구 GPS 수신기의 절반 이상이 정상 동작하지 못했습니다(수신기 대수는 발표 전 원문 재확인).",
+      "lesson": "태양이 조용한 시기에도 GNSS 장애가 생길 수 있습니다. 태양전파폭발을 R·S·G와 별개로 판단하는 근거입니다.",
+      "hypothetical": "같은 전파폭발이 한반도 주간에 일어났다고 가정",
+      "asOfUtc": "2006-12-06T03:00:00Z",
+      "state": { "scales": { "R": 3, "S": 0, "G": 0 }, "metrics": { "xrayClass": "X급" }, "korea": { "isDaytime": true }, "srb": { "active": true, "lastAlertUtc": "2006-12-06T02:45:00Z", "events": [] } },
+      "sources": ["Cerruti2008"]
+    },
+    {
+      "id": "2022-02",
+      "title": "2022년 2월 '작은' 폭풍에 저궤도 위성 38기 손실",
+      "summary": "G1급의 약한 지자기폭풍이었지만 고도 200~400 km 대기가 부풀어 올라 공기 저항이 크게 늘었습니다. 막 발사된 Starlink 위성 49기 중 38기가 궤도를 올리지 못하고 추락했습니다.",
+      "lesson": "등급이 낮다고 영향이 없는 것은 아닙니다. 저고도 운용·발사 국면에서는 G1부터 II 대비로 보는 예외 규칙의 근거입니다.",
+      "hypothetical": "G1 상황에서 '저고도 운용·발사 국면' 토글을 켠 경우",
+      "asOfUtc": "2022-02-04T03:00:00Z",
+      "state": { "scales": { "R": 0, "S": 0, "G": 1 }, "metrics": { "kp": 5 }, "korea": { "isDaytime": true }, "srb": { "active": false, "lastAlertUtc": null, "events": [] } },
+      "options": { "lowAltitudeOps": true },
+      "sources": ["Fang2022", "Berger2023"]
+    }
+  ]
+}

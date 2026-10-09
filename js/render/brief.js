@@ -56,12 +56,17 @@ export function renderBrief(container, { state, result, rules, glossary: g }) {
         el('span', { class: 'muted' }, k.sunSource === 'kasi' ? ' (한국천문연구원)' : ' (내장 계산)'),
       ),
     ),
-    el('div', { class: 'panel' }, el('div', tipAttrs(g, 'forecast3'), 'NOAA 3일 예보'), forecastTable(g, state.forecast)),
-    el('div', { class: 'charts' },
-      el('div', { class: 'panel' }, el('div', tipAttrs(g, 'chartXray'), 'X선 최근 24시간(KST)'), el('div', { class: 'chart-box' }, xrayCanvas)),
-      el('div', { class: 'panel' }, el('div', tipAttrs(g, 'chartKp'), 'Kp 최근 7일(KST)'), el('div', { class: 'chart-box' }, kpCanvas)),
-    ),
+    ...(state.scenario
+      ? [el('p', { ...tipAttrs(g, 'scenario'), class: 'msg' }, '가상 재구성에는 예보·그래프 자료가 없습니다. 현재 칸 판정만 보십시오.')]
+      : [
+          el('div', { class: 'panel' }, el('div', tipAttrs(g, 'forecast3'), 'NOAA 3일 예보'), forecastTable(g, state.forecast)),
+          el('div', { class: 'charts' },
+            el('div', { class: 'panel' }, el('div', tipAttrs(g, 'chartXray'), 'X선 최근 24시간(KST)'), el('div', { class: 'chart-box' }, xrayCanvas)),
+            el('div', { class: 'panel' }, el('div', tipAttrs(g, 'chartKp'), 'Kp 최근 7일(KST)'), el('div', { class: 'chart-box' }, kpCanvas)),
+          ),
+        ]),
   );
+  if (state.scenario || container.offsetParent === null) return; // 숨겨진 탭: 보일 때 다시 그린다
   if (!drawCharts(xrayCanvas, kpCanvas, state, rules)) {
     for (const c of [xrayCanvas, kpCanvas]) c.replaceWith(el('p', { class: 'msg' }, '그래프 라이브러리를 불러오지 못했습니다.'));
   }

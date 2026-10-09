@@ -19,7 +19,7 @@ function detail(result, rules, g) {
     selected.col === 'now' ? el('p', {}, sys.message) : null,
     cell.probabilistic ? el('p', { ...tipAttrs(g, 'probCell'), class: 'muted' }, '확률 예보에서 나온 판단') : null,
     cell.reasons.length
-      ? el('ul', {}, ...cell.reasons.map((r) => el('li', {}, r.text, ' ', el('span', { class: 'source' }, `[${r.source}]`))))
+      ? el('ul', {}, ...cell.reasons.map((r) => el('li', {}, r.text, ' ', el('span', { class: 'source', ...(rules.citations?.[r.source] ? { 'data-tip': rules.citations[r.source], tabindex: '0' } : {}) }, `[${r.source}]`))))
       : el('p', { class: 'muted' }, '해당 원인 없음'),
   );
 }
@@ -39,6 +39,7 @@ export function renderMatrix(container, ctx, handlers) {
       el('th', { scope: 'row' }, sys.name, ...sys.badges.map((b) => el('span', { ...tipAttrs(g, 'regional'), class: 'badge small' }, b))),
       ...COLUMNS.map((col) => {
         const cell = sys.cells[col];
+        if (ctx.state.scenario && col !== 'now') return el('td', {}, el('span', { class: 'cell na' }, '해당 없음'));
         const isSel = selected.sysId === sys.id && selected.col === col;
         return el('td', {},
           el('button', {

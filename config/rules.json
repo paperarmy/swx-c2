@@ -18,6 +18,66 @@
     "srbUnknown": "SRB 판단 불가(전파폭발 경보 자료 없음)",
     "outlookMissing": "장차 전망 없음"
   },
+  "citations": {
+    "description": "출처 태그 → 문헌(PRD 부록 B). 근거 표시에 마우스를 올리면 보인다.",
+    "NOAA-scales": "NOAA SWPC, Space Weather Scales — R/S/G 등급 기준값과 등급별 영향 서술(공식)",
+    "SWPC-3day": "NOAA SWPC 3일 예보(3-Day Forecast) — Kp 예보·R/S 발생 확률(공식)",
+    "SWx-C2-outlook": "SWx-C2 AI 장차 전망 — 로지스틱 회귀, 학습 1996~2019·검증 2020~(reports/outlook-eval.md)",
+    "Cerruti2008": "Cerruti et al. (2008), Space Weather — 2006년 12월 태양전파폭발에 의한 GPS 수신기 장애(동료심사)",
+    "Carrano2009": "Carrano et al. (2009), Radio Science — X선 최강 플레어가 GPS를 약화시키지 않은 사례(동료심사)",
+    "Berger2023": "Berger et al. (2023), Space Weather — 2022년 G1급 폭풍과 Starlink 위성 손실(동료심사)",
+    "Fang2022": "Fang et al. (2022), Space Weather — 약한 폭풍에도 고도 200~400 km 대기 밀도 50~125% 증가(동료심사)",
+    "Knipp2016": "Knipp et al. (2016), Space Weather — 1967년 5월 태양전파폭발과 조기경보 레이더 교란(동료심사)",
+    "NOAA2004": "NOAA (2004), Service Assessment: Intense Space Weather Storms Oct–Nov 2003(공식)",
+    "Xue2023": "Xue et al. (2023), Space Weather — 2003년 R3 후 HF 2시간 장애·극항로 우회 비용(동료심사)",
+    "Lee2024": "이우경 외 (2024), 우주기술과응용 — 2024년 5월 G5 때 한반도 상공 TEC 최대 70% 감소·야간 신틸레이션(동료심사)",
+    "Yang2025": "Yang et al. (2025), Space Weather — 2024년 5월 폭풍의 전지구 고정밀 GPS 영향(동료심사)",
+    "KSWC-2024-05": "우주항공청 우주환경센터, 2024년 5월 경보 경과 공지 — 관심 05-11 03:50, 주의 09:30 KST(공식)"
+  },
+  "diagnosis": {
+    "description": "탭4 장애 원인 판별(PRD 6장·10.2). 답에 따라 점수를 더해 판정한다. 최종 판단은 전자전 부서가 한다.",
+    "questions": [
+      {
+        "id": "daytime",
+        "text": "장애가 한반도 주간(해가 떠 있는 시간)에 생겼습니까?",
+        "why": "X선(R)과 태양전파폭발은 햇빛이 비치는 쪽에서만 직접 영향을 줍니다.",
+        "score": { "yes": 1, "no": -1 },
+        "hint": "daytime"
+      },
+      {
+        "id": "wide",
+        "text": "여러 지역·여러 부대에서 같은 시각에 동시에 생겼습니까?",
+        "why": "자연현상은 넓은 지역에 한꺼번에 나타나고, 재밍은 특정 지역·방향에 몰립니다.",
+        "score": { "yes": 2, "no": -1 }
+      },
+      {
+        "id": "event",
+        "text": "장애 시각이 X선 급증(M급 이상)이나 태양전파폭발·지자기폭풍 시각과 겹칩니까?",
+        "why": "우주기상 사건과 시각이 일치하면 자연현상일 가능성이 큽니다.",
+        "score": { "yes": 2, "no": -1 },
+        "hint": "event"
+      },
+      {
+        "id": "narrow",
+        "text": "특정 방향이나 특정 주파수에서만 장애가 나타납니까?",
+        "why": "좁은 방향·주파수에 집중된 장애는 의도적 재밍의 특징입니다.",
+        "score": { "yes": -2, "no": 1 }
+      },
+      {
+        "id": "sunward",
+        "text": "(레이더·안테나) 태양 쪽을 향할 때 장애가 두드러집니까?",
+        "why": "1967년 사례처럼 태양전파폭발은 태양을 향한 레이더를 교란합니다.",
+        "score": { "yes": 2, "no": 0 },
+        "source": "Knipp2016"
+      }
+    ],
+    "verdicts": [
+      { "minScore": 3, "label": "우주기상 가능성 높음", "level": 1, "advice": "우주기상 영향으로 보고 PACE 전환을 검토하십시오. 재밍 가능성도 전자전 부서에 함께 알립니다." },
+      { "minScore": -1, "label": "판단 유보", "level": 0, "advice": "추가 확인이 필요합니다. 다른 부대의 장애 여부와 우주기상 사건 시각을 확인하십시오." },
+      { "minScore": -99, "label": "재밍 의심", "level": 3, "advice": "의도적 전파 방해 가능성이 큽니다. 즉시 전자전 부서에 보고하십시오." }
+    ],
+    "disclaimer": "판별 결과는 참고용입니다. 최종 판단은 전자전 부서가 합니다."
+  },
   "chartRefs": {
     "description": "탭1 그래프 기준선(NOAA 척도 정의값)",
     "xray": [

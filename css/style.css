@@ -163,3 +163,27 @@ button[data-tip], .cell[data-tip] { text-decoration: none; cursor: pointer; }
 
 footer { color: var(--muted); font-size: 0.85rem; padding: var(--gap); text-align: center; }
 [hidden] { display: none !important; }
+
+/* P4: 재현·판별 */
+h3 { margin-block: 1.5rem 0.5rem; }
+.replay-banner, .scenario-banner { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between;
+  margin-block: 0.5rem; padding: 0.6rem 1rem; border-radius: var(--radius); border: 2px solid var(--lv1); color: var(--lv1); font-weight: bold; }
+.scenario-banner { font-size: 1.1rem; }
+.player input[type="range"] { width: 100%; margin-top: var(--gap); }
+.player-now { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.timeline { display: grid; grid-template-columns: repeat(auto-fill, minmax(14px, 1fr)); gap: 2px; margin-top: var(--gap); }
+.tl { height: 26px; padding: 0; border: 2px solid transparent; border-radius: 3px; min-width: 0; }
+.tl.lv0 { background: var(--lv0); } .tl.lv1 { background: var(--lv1); } .tl.lv2 { background: var(--lv2); } .tl.lv3 { background: var(--lv3); }
+.tl.selected { border-color: var(--text); outline: 2px solid var(--accent); }
+button[aria-pressed="true"] { border-color: var(--accent); font-weight: bold; }
+.swx-row td { font-weight: bold; }
+.case.active { outline: 2px solid var(--accent); }
+.question { border: 1px solid var(--border); }
+.question legend { font-weight: bold; padding: 0 0.3rem; }
+.choice { display: inline-flex; gap: 0.3rem; align-items: center; margin: 0 1rem 0 0; color: var(--text); }
+.choice input { width: auto; }
+.hint { color: var(--accent); margin: 0.3rem 0 0; }
+.verdict { border-left: 8px solid var(--border); }
+.verdict.lv0 { border-left-color: var(--muted); } .verdict.lv1 { border-left-color: var(--lv1); } .verdict.lv3 { border-left-color: var(--lv3); }
+.verdict-label { font-size: 1.3rem; }
+.cell.na { display: inline-block; text-align: center; color: var(--muted); background: transparent; border: 1px dashed var(--border); font-weight: normal; padding: 0.4rem 0; border-radius: var(--radius); }

@@ -9,6 +9,9 @@ import { renderBrief } from './render/brief.js';
 import { renderMatrix } from './render/matrix.js';
 import { renderPace } from './render/pace.js';
 import { renderOutlook } from './render/outlook.js';
+import { renderDiagnose } from './render/diagnose.js';
+import { renderReplay } from './render/replay.js';
+import { createPlayer, scenarioState } from './replay.js';
 
 const API_TIMEOUT_MS = 10000; // PRD 3.5
 const REFRESH_MS = 5 * 60 * 1000;
@@ -20,6 +23,11 @@ let signupMode = false;
 let current = null; // { state, note } 마지막으로 받은 데이터
 const options = { lowAltitudeOps: false }; // 화면 토글(PRD 12.3)
 
+// 재현(P4): display가 있으면 실시간 대신 그 상태를 그린다. 실시간 수집은 뒤에서 계속된다.
+let display = null; // { kind: 'replay' | 'scenario', state }
+const replay = { cases: null, frames: null, index: 0, playing: false, speed: '1x', active: false, scenarioId: null, player: null };
+let savedLowAlt = null; // 가상 재구성이 바꾼 토글을 되돌리기 위해
+
 // 설정 파일은 한 번만 읽는다.
 const once = (url) => {
   let p = null;
@@ -28,6 +36,7 @@ const once = (url) => {
 const loadRules = once('config/rules.json');
 const loadGlossary = once('config/glossary.json');
 const loadModel = once('config/forecast-model.json');
+const loadCases = once('data/cases.json');
 
 function show(viewId) {
   for (const id of VIEWS) $(id).hidden = id !== viewId;
@@ -95,9 +104,13 @@ async function render() {
     $('data-msg').className = 'msg error';
     return;
   }
-  const ctx = { state: current.state, result: evaluate(current.state, rules, options), rules, glossary: glossary ?? { terms: {} }, options };
+  const shown = display?.state ?? current.state;
+  const ctx = { state: shown, result: evaluate(shown, rules, options), rules, glossary: glossary ?? { terms: {} }, options };
   $('data-msg').className = 'msg';
-  $('data-msg').textContent = current.note;
+  $('data-msg').textContent = display ? '' : current.note;
+  $('replay-banner').hidden = !display;
+  $('replay-banner-text').textContent =
+    display?.kind === 'scenario' ? `가상 재구성 중: ${display.state.scenario.title}` : display ? '재현 모드: 과거 사례 시점의 데이터를 보고 있습니다' : '';
   renderStatus($('status'), ctx);
   renderBrief($('tab-brief'), ctx);
   renderMatrix($('tab-matrix'), ctx, {
@@ -107,20 +120,94 @@ async function render() {
     },
   });
   renderPace($('tab-pace'), ctx);
+  renderDiagnose($('tab-diagnose'), ctx);
+  renderReplay($('tab-replay'), ctx, replay, replayHandlers);
   renderOutlook($('tab-outlook'), ctx.state, ctx.glossary);
 }
 
-// 탭 전환. 숨겨진 상태로 그린 그래프는 크기가 0이므로 보일 때 다시 그린다.
-for (const tab of document.querySelectorAll('[data-tab]')) {
-  tab.addEventListener('click', () => {
-    for (const t of document.querySelectorAll('[data-tab]')) {
-      const on = t === tab;
-      t.setAttribute('aria-selected', String(on));
-      $(t.dataset.tab).hidden = !on;
+// ---------------------------------------------------------------- 재현(탭5)
+async function ensureReplay() {
+  replay.cases ??= await loadCases();
+  if (!replay.frames && replay.cases) {
+    const c = replay.cases.replays[0];
+    replay.frames = await fetch(c.file).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    if (replay.frames) {
+      const model = await loadModel();
+      replay.frames = replay.frames.map((f) => withOutlook(f, model));
+      replay.player = createPlayer(replay.frames.length, (i) => showFrame(i));
     }
-    if (tab.dataset.tab === 'tab-brief') render();
-  });
+  }
+  render();
 }
+
+function showFrame(i) {
+  replay.index = i;
+  replay.active = true;
+  replay.scenarioId = null;
+  restoreLowAlt();
+  replay.playing = replay.player?.playing ?? false;
+  display = { kind: 'replay', state: replay.frames[i] };
+  render();
+}
+
+function restoreLowAlt() {
+  if (savedLowAlt !== null) {
+    options.lowAltitudeOps = savedLowAlt;
+    savedLowAlt = null;
+  }
+}
+
+function exitReplay() {
+  replay.player?.pause();
+  replay.playing = false;
+  replay.active = false;
+  replay.scenarioId = null;
+  restoreLowAlt();
+  display = null;
+  render();
+}
+
+const replayHandlers = {
+  onSeek: (i) => replay.player?.seek(i),
+  onPlay: () => {
+    replay.player?.play();
+    showFrame(replay.player.index);
+  },
+  onPause: () => {
+    replay.player?.pause();
+    replay.playing = false;
+    render();
+  },
+  onSpeed: (sp) => {
+    replay.speed = sp;
+    replay.player?.setSpeed(sp);
+    render();
+  },
+  onExit: exitReplay,
+  onScenario: (sc) => {
+    replay.player?.pause();
+    replay.playing = false;
+    replay.active = true;
+    replay.scenarioId = sc.id;
+    if (savedLowAlt === null) savedLowAlt = options.lowAltitudeOps;
+    options.lowAltitudeOps = Boolean(sc.options?.lowAltitudeOps);
+    display = { kind: 'scenario', state: scenarioState(sc) };
+    selectTab('tab-matrix');
+  },
+};
+$('replay-exit').addEventListener('click', exitReplay);
+
+// 탭 전환. 숨겨진 상태로 그린 그래프는 크기가 0이므로 보일 때 다시 그린다.
+function selectTab(id) {
+  for (const t of document.querySelectorAll('[data-tab]')) {
+    const on = t.dataset.tab === id;
+    t.setAttribute('aria-selected', String(on));
+    $(t.dataset.tab).hidden = !on;
+  }
+  if (id === 'tab-replay') ensureReplay();
+  else render();
+}
+for (const tab of document.querySelectorAll('[data-tab]')) tab.addEventListener('click', () => selectTab(tab.dataset.tab));
 
 // 테마: 어두운 상황실 테마 기본, 발표용 밝은 테마(PRD 6.2). 선택은 이 브라우저에만 기억한다.
 function applyTheme(theme) {

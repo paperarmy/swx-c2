@@ -12,7 +12,7 @@ export function renderStatus(container, { state, result, rules, glossary }) {
 
   container.replaceChildren(
     el('div', { class: 'status-row' },
-      el('span', { ...tipAttrs(g, 'mode'), class: `badge mode-${state.mode}` }, MODE_LABEL[state.mode] ?? state.mode),
+      el('span', { ...tipAttrs(g, state.scenario ? 'scenario' : 'mode'), class: `badge mode-${state.mode}` }, state.scenario ? '가상' : MODE_LABEL[state.mode] ?? state.mode),
       el('span', tipAttrs(g, 'asOf'), '기준 ', el('strong', {}, fmtKst(state.asOfUtc))),
       el('span', { ...tipAttrs(g, 'sources', failTip), class: failed.length ? 'warn' : '' },
         `원천 ${ok}/${state.sources.length} 정상${failed.length ? ' · 일부 데이터 지연' : ''}`),
@@ -28,6 +28,9 @@ export function renderStatus(container, { state, result, rules, glossary }) {
       el('span', tipAttrs(g, 'national'), '국가 위기경보 ', el('span', { class: 'muted' }, '미연동')),
       el('span', tipAttrs(g, 'swxc2'), 'SWx-C2 ', levelChip(result.overall, rules)),
     ),
+    ...(state.scenario
+      ? [el('div', { ...tipAttrs(g, 'scenario'), class: 'scenario-banner' }, `가상 재구성 — ${state.scenario.title}: ${state.scenario.hypothetical}`)]
+      : []),
     ...(result.notices.length ? [el('div', { class: 'msg' }, result.notices.join(' · '))] : []),
   );
 }
