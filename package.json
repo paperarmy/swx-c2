@@ -1,0 +1,14 @@
+{
+  "name": "swx-c2",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "test": "node --test",
+    "samples": "node scripts/fetch-samples.mjs",
+    "swx": "node scripts/dev-swx.mjs",
+    "fallback": "node scripts/make-fallback.mjs"
+  }
+}
